@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Cpu, Camera, Trash2, ShieldCheck, Loader2, ChevronLeft, ChevronRight, Eye, MousePointer2 } from 'lucide-react';
+import { Camera, Trash2, ShieldCheck, Loader2, ChevronLeft, ChevronRight, Eye, Sparkles } from 'lucide-react';
 import { db } from './firebase';
 import { 
   onSnapshot, 
@@ -26,14 +26,9 @@ interface MomentData {
 const About: React.FC<AboutProps> = ({ isAdmin }) => {
   const [moments, setMoments] = useState<MomentData[]>([]);
   const [isUploading, setIsUploading] = useState(false);
-  const [scrollProgress, setScrollProgress] = useState(0);
+  const [activeIndex, setActiveIndex] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  
-  // Drag to scroll states
-  const [isDragging, setIsDragging] = useState(false);
-  const [startX, setStartX] = useState(0);
-  const [scrollLeft, setScrollLeft] = useState(0);
 
   useEffect(() => {
     const q = query(collection(db, "moments"), orderBy("createdAt", "desc"));
@@ -52,41 +47,21 @@ const About: React.FC<AboutProps> = ({ isAdmin }) => {
 
   const handleScroll = () => {
     if (scrollContainerRef.current) {
-      const container = scrollContainerRef.current;
-      const progress = (container.scrollLeft / (container.scrollWidth - container.clientWidth)) * 100;
-      setScrollProgress(progress);
+      const { scrollLeft, clientWidth } = scrollContainerRef.current;
+      const index = Math.round(scrollLeft / (clientWidth * 0.85)); // 0.85 is the item width factor
+      setActiveIndex(index);
     }
   };
 
-  const scroll = (direction: 'left' | 'right') => {
+  const scrollToIndex = (index: number) => {
     if (scrollContainerRef.current) {
       const container = scrollContainerRef.current;
-      const scrollAmount = container.clientWidth * 0.8;
-      container.scrollBy({ 
-        left: direction === 'left' ? -scrollAmount : scrollAmount, 
-        behavior: 'smooth' 
+      const itemWidth = container.clientWidth * 0.85;
+      container.scrollTo({
+        left: index * itemWidth,
+        behavior: 'smooth'
       });
     }
-  };
-
-  // Mouse Drag to Scroll Logic
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if (!scrollContainerRef.current) return;
-    setIsDragging(true);
-    setStartX(e.pageX - scrollContainerRef.current.offsetLeft);
-    setScrollLeft(scrollContainerRef.current.scrollLeft);
-  };
-
-  const handleMouseLeaveOrUp = () => {
-    setIsDragging(false);
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging || !scrollContainerRef.current) return;
-    e.preventDefault();
-    const x = e.pageX - scrollContainerRef.current.offsetLeft;
-    const walk = (x - startX) * 2; // Scroll speed multiplier
-    scrollContainerRef.current.scrollLeft = scrollLeft - walk;
   };
 
   const convertToBase64 = (file: File): Promise<string> => {
@@ -118,7 +93,6 @@ const About: React.FC<AboutProps> = ({ isAdmin }) => {
         });
       } catch (error) {
         console.error("Upload Error:", error);
-        alert("Gagal upload. Periksa koneksi atau Firestore Rules kamu.");
       } finally {
         setIsUploading(false);
         if (fileInputRef.current) fileInputRef.current.value = '';
@@ -128,166 +102,128 @@ const About: React.FC<AboutProps> = ({ isAdmin }) => {
 
   const removeMoment = async (id: string) => {
     if (!isAdmin) return;
-    if (window.confirm("Hapus momen ini secara permanen?")) {
+    if (window.confirm("Hapus momen ini?")) {
       try {
         await deleteDoc(doc(db, "moments", id));
       } catch (error) {
-        alert("Gagal menghapus.");
+        console.error(error);
       }
     }
   };
 
   return (
-    <section className="py-20 pt-28 sm:py-24 sm:pt-32 bg-white relative overflow-hidden min-h-screen">
-      <div className="absolute -top-24 -right-24 w-96 h-96 bg-blue-50/50 rounded-full blur-3xl pointer-events-none"></div>
+    <section className="py-20 pt-28 sm:py-32 bg-clean min-h-screen relative overflow-hidden">
+      <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
+        <div className="absolute top-1/4 -right-10 w-64 h-64 bg-blue-50/50 rounded-full blur-[100px]"></div>
+        <div className="absolute bottom-1/4 -left-10 w-64 h-64 bg-slate-50/50 rounded-full blur-[100px]"></div>
+      </div>
       
-      <div className="container mx-auto px-6">
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-start">
-          <div className="lg:sticky lg:top-32 z-10">
-            <span className="font-handwriting text-xl sm:text-2xl text-slate-400 block mb-2">Cloud Gallery</span>
-            <div className="flex items-center gap-3 mb-4">
-              <h2 className="font-artist text-3xl sm:text-4xl md:text-5xl font-bold text-slate-900 tracking-tight leading-tight uppercase">Vibes X TJKT 2</h2>
+      <div className="container mx-auto px-6 relative z-10">
+        <div className="flex flex-col md:flex-row items-start md:items-end justify-between mb-10 gap-4">
+          <div>
+            <span className="font-handwriting text-2xl text-slate-400 block mb-2">Vibes Kita</span>
+            <div className="flex items-center gap-3">
+              <h2 className="font-artist text-4xl sm:text-6xl font-bold text-slate-900 tracking-tighter uppercase leading-none">The Moments</h2>
               {isAdmin && (
-                <div className="glass px-2 py-0.5 rounded-full flex items-center gap-1.5 text-blue-600 border-blue-100 shadow-sm">
-                  <ShieldCheck size={12} />
-                  <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-widest">Admin</span>
+                <div className="glass px-3 py-1 rounded-full flex items-center gap-1.5 text-blue-600 border-blue-100 shadow-sm text-[10px] font-bold uppercase tracking-widest">
+                  <ShieldCheck size={12} /> Admin
                 </div>
               )}
-            </div>
-            <div className="w-16 h-1 bg-slate-900 mb-6"></div>
-            
-            <div className="space-y-4 sm:space-y-6 text-slate-600 leading-relaxed font-light text-base sm:text-lg">
-              <p>
-                Kumpulan momen yang tersimpan di awan. <span className="font-bold text-slate-900">Klik dan geser</span> atau gunakan tombol panah untuk melihat semua koleksi foto kita.
-              </p>
-              
-              {isAdmin && (
-                <div className="flex flex-wrap gap-3 pt-2">
-                  <button 
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={isUploading}
-                    className="flex items-center gap-2 px-6 py-3 bg-slate-900 text-white rounded-full hover:bg-slate-800 transition-all shadow-xl hover:shadow-2xl disabled:opacity-50 group text-sm"
-                  >
-                    {isUploading ? <Loader2 size={18} className="animate-spin" /> : <Camera size={18} className="group-hover:rotate-12 transition-transform" />}
-                    <span>{isUploading ? 'Menyimpan...' : 'Tambah Foto'}</span>
-                  </button>
-                  <input 
-                    type="file" 
-                    ref={fileInputRef} 
-                    className="hidden" 
-                    accept="image/*"
-                    onChange={handleFileChange} 
-                  />
-                </div>
-              )}
-
-              <div className="flex items-center gap-3 pt-4">
-                <div className="flex items-center gap-2 p-3 glass rounded-2xl border-white/60">
-                   <MousePointer2 size={16} className="text-blue-500 animate-bounce" />
-                   <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Drag to Explore Gallery</span>
-                </div>
-              </div>
-
-              {/* Navigation Controls (Visible on all screens now) */}
-              <div className="flex items-center gap-4 pt-6">
-                <button 
-                  onClick={() => scroll('left')}
-                  className="w-12 h-12 sm:w-14 sm:h-14 rounded-full glass flex items-center justify-center text-slate-900 hover:bg-slate-900 hover:text-white transition-all shadow-md group"
-                >
-                  <ChevronLeft size={20} className="sm:size-24 group-hover:-translate-x-1 transition-transform" />
-                </button>
-                <button 
-                  onClick={() => scroll('right')}
-                  className="w-12 h-12 sm:w-14 sm:h-14 rounded-full glass flex items-center justify-center text-slate-900 hover:bg-slate-900 hover:text-white transition-all shadow-md group"
-                >
-                  <ChevronRight size={20} className="sm:size-24 group-hover:translate-x-1 transition-transform" />
-                </button>
-              </div>
             </div>
           </div>
+          
+          <div className="flex items-center gap-4">
+             {isAdmin && (
+               <button 
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploading}
+                className="flex items-center gap-2 px-5 py-3 bg-slate-900 text-white rounded-full hover:bg-slate-800 transition-all shadow-xl disabled:opacity-50 text-xs font-bold uppercase tracking-widest"
+              >
+                {isUploading ? <Loader2 size={14} className="animate-spin" /> : <Camera size={14} />}
+                <span>{isUploading ? 'Sending...' : 'Post'}</span>
+              </button>
+             )}
+             <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileChange} />
+          </div>
+        </div>
 
-          <div className="relative w-full">
-            <div className="flex items-center justify-between mb-4 px-1">
-              <span className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
-                Showing {moments.length} Synchronized Photos
-              </span>
-            </div>
-            
-            <div 
-              ref={scrollContainerRef}
-              onScroll={handleScroll}
-              onMouseDown={handleMouseDown}
-              onMouseLeave={handleMouseLeaveOrUp}
-              onMouseUp={handleMouseLeaveOrUp}
-              onMouseMove={handleMouseMove}
-              className={`flex flex-nowrap gap-5 sm:gap-8 overflow-x-auto no-scrollbar snap-x snap-proximity pb-12 -mx-6 px-6 lg:mx-0 lg:px-0 select-none ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
-              style={{ 
-                scrollBehavior: isDragging ? 'auto' : 'smooth', 
-                WebkitOverflowScrolling: 'touch',
-                touchAction: 'pan-y'
-              }}
-            >
-              {moments.length > 0 ? (
-                moments.map((moment) => (
-                  <div key={moment.id} className="relative w-[80vw] sm:w-[320px] lg:w-[380px] aspect-[4/5] snap-center shrink-0">
-                    <div className="w-full h-full rounded-[2.5rem] sm:rounded-[3.5rem] overflow-hidden shadow-2xl border-[4px] sm:border-[8px] border-white transition-all duration-500 hover:rotate-1 bg-slate-50 relative pointer-events-none">
-                      <img 
-                        src={moment.url} 
-                        alt="Gallery Moment" 
-                        className="w-full h-full object-cover"
-                        draggable="false"
-                        loading="lazy"
-                      />
-                      
-                      {/* Dark gradient for better readability of text overlays if any */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
-                    </div>
+        {/* Professional Scroll Area */}
+        <div className="relative group">
+          {/* Moment Counter Indicator */}
+          <div className="absolute top-4 right-4 z-30 glass px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-[0.2em] text-slate-900 shadow-sm flex items-center gap-2">
+            <Sparkles size={10} className="text-blue-500" />
+            {moments.length > 0 ? `${activeIndex + 1} / ${moments.length}` : '0 / 0'}
+          </div>
 
+          <div 
+            ref={scrollContainerRef}
+            onScroll={handleScroll}
+            className="flex gap-4 sm:gap-8 overflow-x-auto no-scrollbar snap-x snap-mandatory pb-12 -mx-6 px-6 lg:mx-0 lg:px-0 scroll-smooth"
+            style={{ touchAction: 'pan-y' }}
+          >
+            {moments.length > 0 ? (
+              moments.map((moment, i) => (
+                <div 
+                  key={moment.id} 
+                  className="snap-center shrink-0 w-[85vw] sm:w-[450px] aspect-[4/5] relative transition-transform duration-500"
+                >
+                  <div className={`w-full h-full rounded-[2.5rem] sm:rounded-[4rem] overflow-hidden shadow-2xl border-[4px] sm:border-[8px] border-white transition-all duration-700 bg-slate-50 relative ${activeIndex === i ? 'scale-100 opacity-100' : 'scale-90 opacity-40 grayscale-[50%]'}`}>
+                    <img 
+                      src={moment.url} 
+                      alt="Moment" 
+                      className="w-full h-full object-cover select-none pointer-events-none"
+                      loading="lazy"
+                    />
+                    
+                    {/* Shadow Overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent"></div>
+
+                    {/* Admin Actions */}
                     {isAdmin && (
                       <button 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          removeMoment(moment.id);
-                        }} 
-                        className="absolute top-6 right-6 p-3 bg-red-500/90 text-white rounded-full backdrop-blur-md shadow-xl hover:bg-red-600 transition-all pointer-events-auto z-20"
+                        onClick={(e) => { e.stopPropagation(); removeMoment(moment.id); }} 
+                        className="absolute bottom-6 right-6 p-3 bg-red-500 text-white rounded-full shadow-2xl hover:bg-red-600 transition-all transform hover:scale-110 active:scale-95"
                       >
-                        <Trash2 size={16} />
+                        <Trash2 size={18} />
                       </button>
                     )}
                     
-                    <div className="absolute bottom-10 left-10 pointer-events-none">
-                       <p className="font-handwriting text-3xl text-white drop-shadow-lg">X TJKT 2 ✨</p>
+                    <div className="absolute bottom-8 left-8">
+                       <p className="font-handwriting text-3xl text-white drop-shadow-md">X TJKT 2 ✨</p>
                     </div>
                   </div>
-                ))
-              ) : (
-                <div className="w-full min-h-[350px] glass rounded-[3rem] flex flex-col items-center justify-center text-center p-10 grow border-dashed border-2 border-slate-200">
-                  <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4 text-slate-300">
-                    <Eye size={32} />
-                  </div>
-                  <h3 className="font-artist text-lg text-slate-400 font-bold mb-1 uppercase tracking-tighter">Galeri Kosong</h3>
-                  <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Admin belum upload foto</p>
                 </div>
-              )}
-            </div>
-            
-            {/* Scroll Progress Indicator */}
-            {moments.length > 0 && (
-              <div className="mt-4 px-1">
-                <div className="w-full h-[3px] bg-slate-100 rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-slate-900 transition-all duration-300" 
-                    style={{ width: `${Math.max(5, scrollProgress)}%` }}
-                  ></div>
+              ))
+            ) : (
+              <div className="w-full min-h-[400px] glass rounded-[3rem] flex flex-col items-center justify-center text-center p-12 border-dashed border-2 border-slate-100 mx-6">
+                <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4 text-slate-300">
+                  <Eye size={32} />
                 </div>
-                <div className="flex justify-between mt-3">
-                   <p className="text-[8px] font-black uppercase tracking-widest text-slate-400">Drag to View More</p>
-                   <p className="text-[8px] font-black uppercase tracking-widest text-slate-400">{Math.round(scrollProgress)}% Scrolled</p>
-                </div>
+                <h3 className="font-artist text-xl text-slate-400 font-bold mb-1 uppercase tracking-tighter">No Memories Yet</h3>
+                <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Waiting for admin to share</p>
               </div>
             )}
           </div>
+
+          {/* Bottom Dots Indicator */}
+          <div className="flex justify-center gap-2 mt-2">
+            {moments.slice(0, 10).map((_, i) => (
+              <button 
+                key={i}
+                onClick={() => scrollToIndex(i)}
+                className={`h-1 rounded-full transition-all duration-500 ${activeIndex === i ? 'w-8 bg-slate-900' : 'w-2 bg-slate-200'}`}
+              />
+            ))}
+            {moments.length > 10 && <span className="text-[10px] text-slate-400 font-bold">...</span>}
+          </div>
+        </div>
+
+        {/* Mobile Instruction */}
+        <div className="mt-12 text-center">
+           <div className="inline-flex items-center gap-3 px-6 py-3 glass rounded-full animate-bounce">
+              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Geser untuk jelajah</span>
+              <ChevronRight size={14} className="text-slate-300" />
+           </div>
         </div>
       </div>
     </section>

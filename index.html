@@ -4,7 +4,7 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>X TJKT TWO | Class Portfolio</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,22 +15,19 @@
         font-family: 'Inter', sans-serif;
         scroll-behavior: smooth;
         overflow-x: hidden;
+        -webkit-tap-highlight-color: transparent;
       }
       
-      /* Custom Scrollbar for the whole site */
       ::-webkit-scrollbar {
-        width: 8px;
-        height: 8px;
+        width: 5px;
+        height: 5px;
       }
       ::-webkit-scrollbar-track {
-        background: #f1f1f1;
+        background: transparent;
       }
       ::-webkit-scrollbar-thumb {
-        background: #cbd5e1;
+        background: #e2e8f0;
         border-radius: 10px;
-      }
-      ::-webkit-scrollbar-thumb:hover {
-        background: #94a3b8;
       }
 
       .font-artist {
@@ -40,15 +37,15 @@
         font-family: 'Caveat', cursive;
       }
       .glass {
-        background: rgba(255, 255, 255, 0.4);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.3);
+        background: rgba(255, 255, 255, 0.6);
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        border: 1px solid rgba(255, 255, 255, 0.4);
       }
       .bg-clean {
-        background-color: #fbfbfb;
-        background-image: radial-gradient(#e5e7eb 0.5px, transparent 0.5px);
-        background-size: 24px 24px;
+        background-color: #ffffff;
+        background-image: radial-gradient(#f1f5f9 1px, transparent 1px);
+        background-size: 30px 30px;
       }
       .no-scrollbar::-webkit-scrollbar {
         display: none;
@@ -57,10 +54,17 @@
         -ms-overflow-style: none;
         scrollbar-width: none;
       }
-      
-      /* Active state for horizontal scrolling */
-      .scroll-container-active {
+
+      /* Snapping Gallery Utility */
+      .snap-inline {
         scroll-snap-type: x mandatory;
+        scroll-behavior: smooth;
+        display: flex;
+        overflow-x: auto;
+      }
+      .snap-item {
+        scroll-snap-align: center;
+        flex-shrink: 0;
       }
     </style>
   <script type="importmap">
