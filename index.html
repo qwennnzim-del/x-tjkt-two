@@ -14,7 +14,25 @@
       body {
         font-family: 'Inter', sans-serif;
         scroll-behavior: smooth;
+        overflow-x: hidden;
       }
+      
+      /* Custom Scrollbar for the whole site */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #f1f1f1;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 10px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+      }
+
       .font-artist {
         font-family: 'Playfair Display', serif;
       }
@@ -27,24 +45,22 @@
         -webkit-backdrop-filter: blur(12px);
         border: 1px solid rgba(255, 255, 255, 0.3);
       }
-      .glass-dark {
-        background: rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-      }
       .bg-clean {
         background-color: #fbfbfb;
         background-image: radial-gradient(#e5e7eb 0.5px, transparent 0.5px);
         background-size: 24px 24px;
       }
-      /* Hide scrollbar but keep functionality */
       .no-scrollbar::-webkit-scrollbar {
         display: none;
       }
       .no-scrollbar {
         -ms-overflow-style: none;
         scrollbar-width: none;
+      }
+      
+      /* Active state for horizontal scrolling */
+      .scroll-container-active {
+        scroll-snap-type: x mandatory;
       }
     </style>
   <script type="importmap">
