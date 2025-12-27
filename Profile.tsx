@@ -33,16 +33,21 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpdate }) => {
   const [fetchingScore, setFetchingScore] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Simpan nama original untuk mencari dokumen di database sebelum diupdate
+  const originalNameRef = useRef(user.name);
+
   // Fetch current score from leaderboard if admin
   useEffect(() => {
     if (user.isAdmin) {
       const getScore = async () => {
         setFetchingScore(true);
         try {
+          // Selalu cari berdasarkan nama user yang sedang login saat ini
           const q = query(collection(db, "leaderboard"), where("name", "==", user.name));
           const snap = await getDocs(q);
           if (!snap.empty) {
-            setCustomScore(snap.docs[0].data().score);
+            const data = snap.docs[0].data();
+            setCustomScore(data.score);
           }
         } catch (err) {
           console.error("Error fetching score:", err);
@@ -66,40 +71,37 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpdate }) => {
   };
 
   const handleSave = async () => {
+    if (!name.trim()) return alert("Nama tidak boleh kosong!");
     setIsSaving(true);
+    
     try {
-      // 1. Update Local Session & Profile Data
-      onUpdate({
-        ...user,
-        name,
-        bio,
-        photo
-      });
-
-      // 2. If Admin, Update Leaderboard Score (Cheat Mode)
+      // 1. Jika Admin, Update Leaderboard Score & Nama di Database Leaderboard
       if (user.isAdmin) {
-        const q = query(collection(db, "leaderboard"), where("name", "==", user.name));
+        // Cari data leaderboard berdasarkan nama lama (original)
+        const q = query(collection(db, "leaderboard"), where("name", "==", originalNameRef.current));
         const snap = await getDocs(q);
         
-        // Tentukan Rank Title berdasarkan skor baru
+        const actualScore = Number(customScore);
         let rankTitle = "Dewa Admin Server";
-        if (customScore < 100) rankTitle = "Admin Junior";
-        if (customScore < 50) rankTitle = "Kabel Kusut (Admin)";
+        if (actualScore < 100) rankTitle = "Admin Junior";
+        if (actualScore < 50) rankTitle = "Kabel Kusut (Admin)";
 
         if (!snap.empty) {
-          // Update existing doc
+          // Update dokumen yang sudah ada
           const docRef = doc(db, "leaderboard", snap.docs[0].id);
           await updateDoc(docRef, {
-            score: Number(customScore),
+            name: name, // Update ke nama baru jika user merubah namanya
+            score: actualScore,
             rankTitle: rankTitle,
             photo: photo,
+            isAdmin: true,
             updatedAt: serverTimestamp()
           });
         } else {
-          // Create new doc if not exists
+          // Buat baru jika belum ada
           await addDoc(collection(db, "leaderboard"), {
             name: name,
-            score: Number(customScore),
+            score: actualScore,
             rankTitle: rankTitle,
             isAdmin: true,
             photo: photo,
@@ -107,14 +109,29 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpdate }) => {
           });
         }
         
-        // Update Local Storage for Quiz Restriction (Once taken)
-        localStorage.setItem(`quiz_taken_${name}`, customScore.toString());
+        // Bersihkan cache quiz lama jika nama berubah agar tidak bisa kerjakan quiz lagi
+        if (originalNameRef.current !== name) {
+          localStorage.removeItem(`quiz_taken_${originalNameRef.current}`);
+        }
+        // Set cache quiz baru
+        localStorage.setItem(`quiz_taken_${name}`, actualScore.toString());
       }
 
-      alert("Identitas & Skor berhasil diperbarui secara global! 🚀");
+      // 2. Update Session Lokal (App State & LocalStorage)
+      const updatedUser = {
+        ...user,
+        name,
+        bio,
+        photo
+      };
+      
+      onUpdate(updatedUser);
+      originalNameRef.current = name; // Update ref ke nama baru setelah sukses
+
+      alert("Profil & Skor God-Mode Berhasil Disinkronkan! ⚡");
     } catch (err) {
       console.error("Failed to save profile:", err);
-      alert("Terjadi kesalahan saat menyimpan data.");
+      alert("Gagal sinkronisasi ke server. Cek koneksi.");
     } finally {
       setIsSaving(false);
     }
@@ -200,11 +217,11 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpdate }) => {
                     value={customScore}
                     onChange={(e) => setCustomScore(parseInt(e.target.value) || 0)}
                     className="w-full pl-12 pr-4 py-5 bg-white/80 border border-amber-200 rounded-2xl outline-none focus:ring-4 focus:ring-amber-400/20 font-artist text-3xl font-black text-slate-900"
-                    placeholder="Enter Custom Score"
+                    placeholder="Set Point Manual"
                   />
                   {fetchingScore && <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 text-amber-400 animate-spin" size={16} />}
                 </div>
-                <p className="mt-4 text-[9px] font-bold text-amber-500 uppercase tracking-widest">Skor ini akan langsung terlihat di Global Leaderboard.</p>
+                <p className="mt-4 text-[9px] font-bold text-amber-500 uppercase tracking-widest">Skor ini akan tertanam permanen di database global.</p>
               </div>
             )}
 
@@ -245,25 +262,10 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpdate }) => {
                 ) : (
                   <Save size={18} className="group-hover:rotate-12 transition-transform" />
                 )}
-                {isSaving ? 'Sychronizing...' : 'Synchronize Identity'}
+                {isSaving ? 'Sychronizing...' : 'Save & Overwrite Score'}
               </button>
             </div>
           </div>
-
-          <div className="mt-12 text-center">
-            <p className="text-[9px] font-black text-slate-300 uppercase tracking-[0.3em]">User Authority: {user.isAdmin ? 'Admin God Mode' : 'Standard Student'}</p>
-          </div>
-        </div>
-
-        {/* Motivation Card */}
-        <div className="mt-10 glass rounded-[2.5rem] p-8 border-dashed border-2 border-slate-100 flex items-center gap-6">
-           <div className="w-14 h-14 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center shrink-0">
-             <ShieldAlert size={24} />
-           </div>
-           <div>
-             <h4 className="font-artist text-xl font-black text-slate-900 mb-1 uppercase tracking-tight">Stay Authentic</h4>
-             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Identitasmu adalah kekuatanmu di X TJKT TWO.</p>
-           </div>
         </div>
       </div>
     </section>
