@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Menu, X, User, ShieldCheck, LogOut } from 'lucide-react';
+import { Menu, X, LogOut, Trophy } from 'lucide-react';
 
 interface NavbarProps {
   currentPage: string;
@@ -25,17 +25,14 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, userName, 
     { name: 'Vibes Kita', id: 'about' },
     { name: 'The Squad', id: 'members' },
     { name: 'Jadwal Tempur', id: 'schedule' },
+    { name: 'Fun Quiz', id: 'quiz' },
+    { name: 'Hall of Fame', id: 'leaderboard' },
   ];
 
   const handleNavClick = (id: string) => {
     setCurrentPage(id);
     setIsOpen(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const getInitial = (name?: string) => {
-    if (!name) return 'U';
-    return name.charAt(0).toUpperCase();
   };
 
   return (
@@ -46,18 +43,18 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, userName, 
             <span className="font-artist text-xl font-bold tracking-tighter text-slate-800">X TJKT TWO</span>
           </div>
 
-          <div className="hidden md:flex items-center gap-8">
+          <div className="hidden lg:flex items-center gap-6">
             {navLinks.map((link) => (
               <button 
                 key={link.id} 
                 onClick={() => handleNavClick(link.id)}
-                className={`text-xs font-bold uppercase tracking-widest transition-colors ${currentPage === link.id ? 'text-slate-900' : 'text-slate-400 hover:text-slate-900'}`}
+                className={`text-[10px] font-black uppercase tracking-widest transition-all px-3 py-1 rounded-full ${currentPage === link.id ? 'bg-slate-900 text-white' : 'text-slate-400 hover:text-slate-900'}`}
               >
                 {link.name}
               </button>
             ))}
             
-            <div className="h-6 w-[1px] bg-slate-200 mx-2"></div>
+            <div className="h-6 w-[1px] bg-slate-200 mx-1"></div>
 
             <div className="flex items-center gap-4">
                <div className="flex flex-col items-end">
@@ -74,14 +71,14 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, userName, 
             </div>
           </div>
 
-          <button className="md:hidden p-1 text-slate-800" onClick={() => setIsOpen(!isOpen)}>
+          <button className="lg:hidden p-1 text-slate-800" onClick={() => setIsOpen(!isOpen)}>
             {isOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
         </div>
       </div>
 
       {isOpen && (
-        <div className="absolute top-24 left-6 right-6 md:hidden">
+        <div className="absolute top-24 left-6 right-6 lg:hidden">
           <div className="glass rounded-3xl p-6 flex flex-col gap-4 shadow-2xl animate-in slide-in-from-top duration-300">
             {navLinks.map((link) => (
               <button 

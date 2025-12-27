@@ -6,6 +6,8 @@ import Home from './Home';
 import About from './About';
 import Members from './Members';
 import Schedule from './Schedule';
+import Quiz from './Quiz';
+import Leaderboard from './Leaderboard';
 import Footer from './Footer';
 import Login from './Login';
 
@@ -20,7 +22,6 @@ const App = () => {
   const [user, setUser] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Persistence Check: Memastikan user tidak "terpental" saat refresh
   useEffect(() => {
     const savedUser = localStorage.getItem('tjkt_session');
     if (savedUser) {
@@ -52,6 +53,10 @@ const App = () => {
         return <Members />;
       case 'schedule':
         return <Schedule />;
+      case 'quiz':
+        return <Quiz userName={user?.name || ''} onSeeLeaderboard={() => setCurrentPage('leaderboard')} />;
+      case 'leaderboard':
+        return <Leaderboard />;
       default:
         return <Home onExplore={setCurrentPage} userName={user?.name || ''} isAdmin={user?.isAdmin || false} />;
     }
@@ -69,10 +74,7 @@ const App = () => {
 
   return (
     <div className="bg-clean min-h-screen selection:bg-slate-900 selection:text-white relative">
-      {/* Vibe Overlay Permanen (Grain/Noise) */}
       <div className="fixed inset-0 pointer-events-none opacity-[0.04] z-[9999] bg-[url('https://grainy-gradients.vercel.app/noise.svg')]"></div>
-      
-      {/* Soft Glow Ambient */}
       <div className="fixed top-0 left-0 w-full h-full pointer-events-none z-[9998] bg-gradient-to-tr from-blue-50/10 via-transparent to-purple-50/10"></div>
       
       <Navbar 
