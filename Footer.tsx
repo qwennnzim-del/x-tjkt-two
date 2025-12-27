@@ -11,14 +11,26 @@ const Footer = () => (
             Ada pertanyaan atau mau ngajak kolaborasi? Main aja ke Laboratorium Komputer atau hubungi kita di sosmed. Kita selalu terbuka buat teman-teman baru.
           </p>
           <div className="flex gap-6">
-            <a href="#" className="w-14 h-14 rounded-full border border-slate-700 flex items-center justify-center hover:bg-white transition-all duration-500 overflow-hidden group">
+            <a 
+              href="https://www.instagram.com/teknisinya.tjktdua?igsh=bDF5MWV5djkxejc=" 
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-14 h-14 rounded-full border border-slate-700 flex items-center justify-center hover:bg-white transition-all duration-500 overflow-hidden group"
+              title="Instagram @teknisinya.tjktdua"
+            >
               <img 
                 src="https://img.icons8.com/?size=100&id=BrU2BBoRXiWq&format=png&color=000000" 
                 alt="Instagram" 
                 className="w-7 h-7 object-contain group-hover:scale-110 transition-transform"
               />
             </a>
-            <a href="#" className="w-14 h-14 rounded-full border border-slate-700 flex items-center justify-center hover:bg-white transition-all duration-500 overflow-hidden group">
+            <a 
+              href="https://whatsapp.com/channel/0029VbB2q6h8qIzobHipWV1d" 
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-14 h-14 rounded-full border border-slate-700 flex items-center justify-center hover:bg-white transition-all duration-500 overflow-hidden group"
+              title="WhatsApp Channel X TJKT TWO"
+            >
               <img 
                 src="https://img.icons8.com/?size=100&id=A1JUR9NRH7sC&format=png&color=000000" 
                 alt="WhatsApp" 
