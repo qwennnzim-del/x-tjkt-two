@@ -1,6 +1,17 @@
 
-import React, { useState, useRef } from 'react';
-import { Camera, User as UserIcon, Save, Edit2, CheckCircle2, ShieldAlert, Sparkles, MessageSquare } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Camera, User as UserIcon, Save, Edit2, CheckCircle2, ShieldAlert, Sparkles, MessageSquare, Zap, Trophy, Loader2 } from 'lucide-react';
+import { db } from './firebase';
+import { 
+  collection, 
+  query, 
+  where, 
+  getDocs, 
+  updateDoc, 
+  addDoc, 
+  doc, 
+  serverTimestamp 
+} from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
 interface ProfileProps {
   user: {
@@ -17,8 +28,31 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpdate }) => {
   const [name, setName] = useState(user.name);
   const [bio, setBio] = useState(user.bio || '');
   const [photo, setPhoto] = useState(user.photo || '');
-  const [isEditing, setIsEditing] = useState(false);
+  const [customScore, setCustomScore] = useState<number>(0);
+  const [isSaving, setIsSaving] = useState(false);
+  const [fetchingScore, setFetchingScore] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Fetch current score from leaderboard if admin
+  useEffect(() => {
+    if (user.isAdmin) {
+      const getScore = async () => {
+        setFetchingScore(true);
+        try {
+          const q = query(collection(db, "leaderboard"), where("name", "==", user.name));
+          const snap = await getDocs(q);
+          if (!snap.empty) {
+            setCustomScore(snap.docs[0].data().score);
+          }
+        } catch (err) {
+          console.error("Error fetching score:", err);
+        } finally {
+          setFetchingScore(false);
+        }
+      };
+      getScore();
+    }
+  }, [user.isAdmin, user.name]);
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -31,15 +65,59 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpdate }) => {
     }
   };
 
-  const handleSave = () => {
-    onUpdate({
-      ...user,
-      name,
-      bio,
-      photo
-    });
-    setIsEditing(false);
-    alert("Profil berhasil diperbarui! ✨");
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      // 1. Update Local Session & Profile Data
+      onUpdate({
+        ...user,
+        name,
+        bio,
+        photo
+      });
+
+      // 2. If Admin, Update Leaderboard Score (Cheat Mode)
+      if (user.isAdmin) {
+        const q = query(collection(db, "leaderboard"), where("name", "==", user.name));
+        const snap = await getDocs(q);
+        
+        // Tentukan Rank Title berdasarkan skor baru
+        let rankTitle = "Dewa Admin Server";
+        if (customScore < 100) rankTitle = "Admin Junior";
+        if (customScore < 50) rankTitle = "Kabel Kusut (Admin)";
+
+        if (!snap.empty) {
+          // Update existing doc
+          const docRef = doc(db, "leaderboard", snap.docs[0].id);
+          await updateDoc(docRef, {
+            score: Number(customScore),
+            rankTitle: rankTitle,
+            photo: photo,
+            updatedAt: serverTimestamp()
+          });
+        } else {
+          // Create new doc if not exists
+          await addDoc(collection(db, "leaderboard"), {
+            name: name,
+            score: Number(customScore),
+            rankTitle: rankTitle,
+            isAdmin: true,
+            photo: photo,
+            createdAt: serverTimestamp()
+          });
+        }
+        
+        // Update Local Storage for Quiz Restriction (Once taken)
+        localStorage.setItem(`quiz_taken_${name}`, customScore.toString());
+      }
+
+      alert("Identitas & Skor berhasil diperbarui secara global! 🚀");
+    } catch (err) {
+      console.error("Failed to save profile:", err);
+      alert("Terjadi kesalahan saat menyimpan data.");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -48,7 +126,7 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpdate }) => {
         <header className="text-center mb-12 animate-in slide-in-from-bottom duration-700">
           <div className="inline-flex items-center gap-3 glass px-6 py-2 rounded-full mb-6">
             <UserIcon size={16} className="text-slate-500" />
-            <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">My Identity</span>
+            <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Identity Management</span>
           </div>
           <h2 className="font-artist text-5xl md:text-7xl font-black text-slate-900 tracking-tighter uppercase leading-none">
             YOUR <span className="text-slate-200">PROFILE</span>
@@ -102,6 +180,34 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpdate }) => {
           </div>
 
           <div className="space-y-8">
+            {/* Secret Admin Cheat Mode */}
+            {user.isAdmin && (
+              <div className="p-8 bg-amber-50/50 rounded-[2.5rem] border-2 border-amber-200 border-dashed relative overflow-hidden group/admin">
+                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover/admin:opacity-20 transition-opacity">
+                  <Zap size={60} className="text-amber-500" />
+                </div>
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-8 h-8 bg-amber-400 text-white rounded-xl flex items-center justify-center shadow-lg">
+                    <Zap size={16} className="fill-white" />
+                  </div>
+                  <h4 className="text-[10px] font-black uppercase tracking-widest text-amber-600">Admin Cheat Mode (Score Override)</h4>
+                </div>
+                
+                <div className="relative">
+                  <Trophy className="absolute left-4 top-1/2 -translate-y-1/2 text-amber-400" size={20} />
+                  <input 
+                    type="number" 
+                    value={customScore}
+                    onChange={(e) => setCustomScore(parseInt(e.target.value) || 0)}
+                    className="w-full pl-12 pr-4 py-5 bg-white/80 border border-amber-200 rounded-2xl outline-none focus:ring-4 focus:ring-amber-400/20 font-artist text-3xl font-black text-slate-900"
+                    placeholder="Enter Custom Score"
+                  />
+                  {fetchingScore && <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 text-amber-400 animate-spin" size={16} />}
+                </div>
+                <p className="mt-4 text-[9px] font-bold text-amber-500 uppercase tracking-widest">Skor ini akan langsung terlihat di Global Leaderboard.</p>
+              </div>
+            )}
+
             <div>
               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-3">Display Name</label>
               <div className="relative group">
@@ -131,16 +237,21 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpdate }) => {
             <div className="pt-6">
               <button 
                 onClick={handleSave}
-                className="w-full py-6 bg-slate-900 text-white rounded-[2rem] hover:bg-slate-800 transition-all shadow-2xl font-black uppercase tracking-[0.4em] text-[10px] flex items-center justify-center gap-4 group"
+                disabled={isSaving}
+                className="w-full py-6 bg-slate-900 text-white rounded-[2rem] hover:bg-slate-800 transition-all shadow-2xl font-black uppercase tracking-[0.4em] text-[10px] flex items-center justify-center gap-4 group disabled:opacity-50"
               >
-                <Save size={18} className="group-hover:rotate-12 transition-transform" />
-                Synchronize Profile
+                {isSaving ? (
+                  <Loader2 size={18} className="animate-spin" />
+                ) : (
+                  <Save size={18} className="group-hover:rotate-12 transition-transform" />
+                )}
+                {isSaving ? 'Sychronizing...' : 'Synchronize Identity'}
               </button>
             </div>
           </div>
 
           <div className="mt-12 text-center">
-            <p className="text-[9px] font-black text-slate-300 uppercase tracking-[0.3em]">Session ID: Permanent Connection</p>
+            <p className="text-[9px] font-black text-slate-300 uppercase tracking-[0.3em]">User Authority: {user.isAdmin ? 'Admin God Mode' : 'Standard Student'}</p>
           </div>
         </div>
 
