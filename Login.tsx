@@ -1,6 +1,8 @@
 
 import React, { useState, useRef } from 'react';
 import { User, School, ArrowRight, CheckCircle2, ShieldCheck, Lock } from 'lucide-react';
+import { db } from './firebase';
+import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
 interface LoginProps {
   onLogin: (userData: { name: string; classMajor: string; isAdmin: boolean }) => void;
@@ -62,8 +64,21 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     window.addEventListener('touchend', cleanup);
   };
 
-  const triggerLogin = () => {
+  const triggerLogin = async () => {
     const isAdmin = adminCode === SECRET_ADMIN_CODE;
+    
+    // Simpan Log Login ke Firestore untuk dipantau Admin
+    try {
+      await addDoc(collection(db, "user_logins"), {
+        name,
+        classMajor,
+        timestamp: serverTimestamp(),
+        isAdmin: isAdmin
+      });
+    } catch (err) {
+      console.error("Failed to log login:", err);
+    }
+
     setShowNotification(true);
     setTimeout(() => {
       onLogin({ name, classMajor, isAdmin });

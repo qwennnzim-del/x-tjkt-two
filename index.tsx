@@ -8,6 +8,7 @@ import Members from './Members';
 import Schedule from './Schedule';
 import Quiz from './Quiz';
 import Leaderboard from './Leaderboard';
+import Profile from './Profile';
 import Footer from './Footer';
 import Login from './Login';
 
@@ -15,6 +16,8 @@ interface UserData {
   name: string;
   classMajor: string;
   isAdmin: boolean;
+  bio?: string;
+  photo?: string;
 }
 
 const App = () => {
@@ -35,30 +38,31 @@ const App = () => {
     localStorage.setItem('tjkt_session', JSON.stringify(userData));
   };
 
-  const handleLogout = () => {
-    if (window.confirm("Yakin mau logout?")) {
-      setUser(null);
-      localStorage.removeItem('tjkt_session');
-      setCurrentPage('home');
-    }
+  const handleUpdateProfile = (updatedData: UserData) => {
+    setUser(updatedData);
+    localStorage.setItem('tjkt_session', JSON.stringify(updatedData));
   };
 
   const renderPage = () => {
+    if (!user) return <Login onLogin={handleLogin} />;
+
     switch (currentPage) {
       case 'home':
-        return <Home onExplore={setCurrentPage} userName={user?.name || ''} isAdmin={user?.isAdmin || false} />;
+        return <Home onExplore={setCurrentPage} user={user} />;
       case 'about':
-        return <About isAdmin={user?.isAdmin || false} />;
+        return <About isAdmin={user.isAdmin} />;
       case 'members':
         return <Members />;
       case 'schedule':
         return <Schedule />;
       case 'quiz':
-        return <Quiz userName={user?.name || ''} onSeeLeaderboard={() => setCurrentPage('leaderboard')} />;
+        return <Quiz user={user} onSeeLeaderboard={() => setCurrentPage('leaderboard')} />;
       case 'leaderboard':
         return <Leaderboard />;
+      case 'profile':
+        return <Profile user={user} onUpdate={handleUpdateProfile} />;
       default:
-        return <Home onExplore={setCurrentPage} userName={user?.name || ''} isAdmin={user?.isAdmin || false} />;
+        return <Home onExplore={setCurrentPage} user={user} />;
     }
   };
 
@@ -68,28 +72,24 @@ const App = () => {
     </div>
   );
 
-  if (!user) {
-    return <Login onLogin={handleLogin} />;
-  }
-
   return (
     <div className="bg-clean min-h-screen selection:bg-slate-900 selection:text-white relative">
       <div className="fixed inset-0 pointer-events-none opacity-[0.04] z-[9999] bg-[url('https://grainy-gradients.vercel.app/noise.svg')]"></div>
       <div className="fixed top-0 left-0 w-full h-full pointer-events-none z-[9998] bg-gradient-to-tr from-blue-50/10 via-transparent to-purple-50/10"></div>
       
-      <Navbar 
-        currentPage={currentPage} 
-        setCurrentPage={setCurrentPage} 
-        userName={user.name} 
-        isAdmin={user.isAdmin}
-        onLogout={handleLogout}
-      />
+      {user && (
+        <Navbar 
+          currentPage={currentPage} 
+          setCurrentPage={setCurrentPage} 
+          user={user}
+        />
+      )}
       
       <main className="animate-in fade-in duration-1000">
         {renderPage()}
       </main>
 
-      <Footer />
+      {user && <Footer />}
     </div>
   );
 };

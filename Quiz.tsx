@@ -1,10 +1,14 @@
 
-import React, { useState, useMemo } from 'react';
-import { Trophy, MessageCircle, CheckCircle2, XCircle, BrainCircuit, Sparkles, PartyPopper, Lightbulb, MessageSquarePlus, Medal, Loader2, ArrowRight } from 'lucide-react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { Trophy, MessageCircle, CheckCircle2, XCircle, BrainCircuit, Sparkles, PartyPopper, Lightbulb, MessageSquarePlus, Medal, Loader2, ArrowRight, Lock } from 'lucide-react';
 import { db } from './firebase';
 import { 
   collection, 
   addDoc, 
+  getDocs,
+  query,
+  where,
+  limit,
   serverTimestamp 
 } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
@@ -68,26 +72,71 @@ const ALL_QUESTIONS: Question[] = [
 ];
 
 interface QuizProps {
-  userName: string;
+  user: {
+    name: string;
+    isAdmin: boolean;
+    photo?: string;
+  };
   onSeeLeaderboard: () => void;
 }
 
-const Quiz: React.FC<QuizProps> = ({ userName, onSeeLeaderboard }) => {
+const Quiz: React.FC<QuizProps> = ({ user, onSeeLeaderboard }) => {
   const [currentIdx, setCurrentIdx] = useState(0);
   const [score, setScore] = useState(0);
   const [showResult, setShowResult] = useState(false);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [checkingStatus, setCheckingStatus] = useState(true);
+  const [alreadyParticipated, setAlreadyParticipated] = useState(false);
+  const [pastScore, setPastScore] = useState<number | null>(null);
+
+  // Cek apakah user sudah pernah ikut quiz
+  useEffect(() => {
+    const checkUserParticipation = async () => {
+      // 1. Cek LocalStorage dulu (Cepat)
+      const localStatus = localStorage.getItem(`quiz_taken_${user.name}`);
+      if (localStatus) {
+        setPastScore(parseInt(localStatus));
+        setAlreadyParticipated(true);
+        setCheckingStatus(false);
+        return;
+      }
+
+      // 2. Cek Firestore (Data Asli)
+      try {
+        const q = query(
+          collection(db, "leaderboard"), 
+          where("name", "==", user.name),
+          limit(1)
+        );
+        const querySnapshot = await getDocs(q);
+        if (!querySnapshot.empty) {
+          const data = querySnapshot.docs[0].data();
+          setPastScore(data.score);
+          setAlreadyParticipated(true);
+          // Simpan ke local agar refresh selanjutnya lebih cepat
+          localStorage.setItem(`quiz_taken_${user.name}`, data.score.toString());
+        }
+      } catch (err) {
+        console.error("Error checking quiz status:", err);
+      } finally {
+        setCheckingStatus(false);
+      }
+    };
+
+    checkUserParticipation();
+  }, [user.name]);
 
   const quizQuestions = useMemo(() => {
     return [...ALL_QUESTIONS].sort(() => Math.random() - 0.5).slice(0, 10);
   }, []);
 
   const getRankData = (finalScore: number) => {
-    if (finalScore === 10) return { title: "Dewa Admin Server", msg: "Gila! Kamu emang teknisi masa depan X TJKT TWO! 🔥" };
-    if (finalScore >= 7) return { title: "Kabel LAN Premium", msg: "Mantap, kamu udah paham banget seluk beluk kelas kita! 😎" };
-    if (finalScore >= 4) return { title: "User WiFi Gratisan", msg: "Lumayan lah, tapi belajarnya kurang kenceng nih! 😂" };
+    const s = finalScore / 10; // Normalisasi jika inputnya 0-100
+    if (finalScore === 100 || finalScore === 10) return { title: "Dewa Admin Server", msg: "Gila! Kamu emang teknisi masa depan X TJKT TWO! 🔥" };
+    if (finalScore >= 70 || finalScore >= 7) return { title: "Kabel LAN Premium", msg: "Mantap, kamu udah paham banget seluk beluk kelas kita! 😎" };
+    if (finalScore >= 40 || finalScore >= 4) return { title: "User WiFi Gratisan", msg: "Lumayan lah, tapi belajarnya kurang kenceng nih! 😂" };
     return { title: "Kabel Kusut", msg: "Waduh, sepertinya kamu butuh instal ulang otak nih! 🤡" };
   };
 
@@ -114,14 +163,19 @@ const Quiz: React.FC<QuizProps> = ({ userName, onSeeLeaderboard }) => {
 
   const saveToLeaderboard = async (finalScore: number) => {
     setIsSaving(true);
+    const actualScore = finalScore * 10;
     try {
-      const rankData = getRankData(finalScore);
+      const rankData = getRankData(actualScore);
       await addDoc(collection(db, "leaderboard"), {
-        name: userName,
-        score: finalScore * 10,
+        name: user.name,
+        score: actualScore,
         rankTitle: rankData.title,
+        isAdmin: user.isAdmin,
+        photo: user.photo || null,
         createdAt: serverTimestamp()
       });
+      // Tandai sudah mengerjakan di local
+      localStorage.setItem(`quiz_taken_${user.name}`, actualScore.toString());
     } catch (err) {
       console.error("Gagal simpan skor:", err);
     } finally {
@@ -129,17 +183,53 @@ const Quiz: React.FC<QuizProps> = ({ userName, onSeeLeaderboard }) => {
     }
   };
 
-  const adminNumber = "6287729044780";
-  const waMessage = encodeURIComponent(
-    `Halo Admin X TJKT TWO! 👋\n\nSaya *${userName}*, ingin memberikan masukan untuk website kelas kita:\n\n` +
-    `📌 *Kategori:* [Ide Fitur / Saran Desain / Laporan Bug]\n` +
-    `📝 *Detail:* ...\n\n` +
-    `Semoga bisa membantu pengembangan web kita jadi lebih keren! Terima kasih! 🚀✨`
-  );
-  const waUrl = `https://wa.me/${adminNumber}?text=${waMessage}`;
+  if (checkingStatus) {
+    return (
+      <div className="h-screen w-screen flex items-center justify-center bg-clean">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 size={40} className="text-slate-200 animate-spin" />
+          <p className="font-artist text-xl text-slate-400">Memeriksa Akses Quiz...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Jika sudah pernah ikut, tampilkan layar "Sudah Ikut"
+  if (alreadyParticipated && !showResult) {
+    const rank = getRankData(pastScore || 0);
+    return (
+      <div className="min-h-screen pt-32 pb-20 px-6 flex items-center justify-center bg-clean">
+        <div className="w-full max-w-2xl glass rounded-[3.5rem] p-8 md:p-14 text-center shadow-3xl border-white/60 animate-in zoom-in duration-700">
+          <div className="w-20 h-20 bg-slate-100 text-slate-400 rounded-2xl flex items-center justify-center mx-auto mb-8 shadow-sm">
+            <Lock size={40} />
+          </div>
+          <h2 className="font-artist text-3xl font-black text-slate-900 mb-2 uppercase tracking-tight">AKSES TERKUNCI</h2>
+          <p className="text-slate-400 font-bold text-[9px] uppercase tracking-[0.4em] mb-10">Satu Kesempatan Per User</p>
+          
+          <div className="bg-slate-50/50 p-8 rounded-[2.5rem] border border-slate-100 mb-10">
+            <p className="text-sm font-handwriting text-slate-500 mb-4">Kamu sudah memberikan yang terbaik!</p>
+            <div className="flex justify-center items-end gap-1 mb-4">
+              <span className="text-5xl font-artist font-black text-slate-900">{pastScore}</span>
+              <span className="text-xs font-black text-slate-400 mb-2">PTS</span>
+            </div>
+            <div className="inline-block px-4 py-1.5 bg-slate-900 text-white rounded-full text-[10px] font-black uppercase tracking-widest">
+              Gelar: {rank.title}
+            </div>
+          </div>
+
+          <button 
+            onClick={onSeeLeaderboard}
+            className="flex items-center justify-center gap-4 w-full py-5 bg-slate-900 text-white rounded-full hover:bg-slate-800 transition-all shadow-xl font-black uppercase tracking-[0.3em] text-[10px]"
+          >
+            Lihat Papan Skor Global <ArrowRight size={18} />
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (showResult) {
-    const rank = getRankData(score);
+    const rank = getRankData(score * 10);
     return (
       <div className="min-h-screen pt-32 pb-20 px-6 flex items-center justify-center bg-clean">
         <div className="w-full max-w-2xl glass rounded-[3.5rem] p-8 md:p-14 text-center shadow-3xl animate-in zoom-in duration-700 border-white/60">
@@ -148,7 +238,7 @@ const Quiz: React.FC<QuizProps> = ({ userName, onSeeLeaderboard }) => {
           </div>
           
           <h2 className="font-artist text-4xl font-black text-slate-900 mb-2 uppercase tracking-tight">QUIZ SELESAI!</h2>
-          <p className="text-slate-400 font-bold text-[9px] uppercase tracking-[0.4em] mb-10">Mission report for {userName}</p>
+          <p className="text-slate-400 font-bold text-[9px] uppercase tracking-[0.4em] mb-10">Mission report for {user.name}</p>
           
           <div className="grid grid-cols-2 gap-4 mb-10">
             <div className="bg-slate-50/50 border border-slate-100 p-6 rounded-[2.5rem]">
@@ -170,31 +260,6 @@ const Quiz: React.FC<QuizProps> = ({ userName, onSeeLeaderboard }) => {
             >
               Cek Hall of Fame <ArrowRight size={18} className="group-hover:translate-x-2 transition-transform" />
             </button>
-          </div>
-
-          <div className="bg-slate-50 rounded-[2.5rem] p-8 text-left relative overflow-hidden group border border-slate-100">
-            <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:rotate-12 transition-transform">
-              <MessageSquarePlus size={80} className="text-slate-900" />
-            </div>
-            
-            <div className="relative z-10">
-              <h4 className="text-slate-900 font-artist text-xl font-bold mb-3 flex items-center gap-3">
-                Punya Ide atau Lapor Bug? 💡
-              </h4>
-              <p className="text-slate-400 text-xs leading-relaxed mb-8 font-medium">
-                Bantu kami mengembangkan web ini jadi lebih keren dengan saran atau laporan kamu!
-              </p>
-              
-              <a 
-                href={waUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center gap-3 w-full py-4 bg-white text-slate-900 border border-slate-200 rounded-full hover:bg-slate-50 transition-all font-black uppercase tracking-[0.2em] text-[10px] shadow-sm group/btn"
-              >
-                <MessageCircle size={16} className="group-hover/btn:scale-110 transition-transform" />
-                Kirim Pesan ke Admin
-              </a>
-            </div>
           </div>
         </div>
       </div>

@@ -1,23 +1,81 @@
 
-import React from 'react';
-import { Menu, X, LogOut, Trophy } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Menu, X, Trophy, User as UserIcon, CheckCircle2, Bell, ShieldAlert, Clock } from 'lucide-react';
+import { db } from './firebase';
+import { 
+  collection, 
+  query, 
+  orderBy, 
+  limit, 
+  onSnapshot 
+} from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
 interface NavbarProps {
   currentPage: string;
   setCurrentPage: (page: string) => void;
-  userName?: string;
-  isAdmin?: boolean;
-  onLogout?: () => void;
+  user: {
+    name: string;
+    isAdmin: boolean;
+    photo?: string;
+  };
 }
 
-const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, userName, isAdmin, onLogout }) => {
-  const [isOpen, setIsOpen] = React.useState(false);
-  const [scrolled, setScrolled] = React.useState(false);
+interface LoginActivity {
+  id: string;
+  name: string;
+  classMajor: string;
+  timestamp: any;
+  isAdmin: boolean;
+}
 
-  React.useEffect(() => {
+const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, user }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [logins, setLogins] = useState<LoginActivity[]>([]);
+  const [hasNew, setHasNew] = useState(false);
+  const notificationRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Real-time Notification Listener for Admin
+  useEffect(() => {
+    if (!user.isAdmin) return;
+
+    const q = query(
+      collection(db, "user_logins"),
+      orderBy("timestamp", "desc"),
+      limit(5)
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const newLogins = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as LoginActivity[];
+      
+      if (logins.length > 0 && newLogins.length > 0 && newLogins[0].id !== logins[0].id) {
+        setHasNew(true);
+      }
+      setLogins(newLogins);
+    });
+
+    return () => unsubscribe();
+  }, [user.isAdmin, logins.length]);
+
+  // Close notifications on click outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (notificationRef.current && !notificationRef.current.contains(event.target as Node)) {
+        setShowNotifications(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const navLinks = [
@@ -33,6 +91,11 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, userName, 
     setCurrentPage(id);
     setIsOpen(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const toggleNotifications = () => {
+    setShowNotifications(!showNotifications);
+    setHasNew(false);
   };
 
   return (
@@ -56,18 +119,83 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, userName, 
             
             <div className="h-6 w-[1px] bg-slate-200 mx-1"></div>
 
-            <div className="flex items-center gap-4">
-               <div className="flex flex-col items-end">
-                  <span className="text-[10px] font-black text-slate-900 leading-none">{userName?.split(' ')[0]}</span>
-                  {isAdmin && <span className="text-[8px] text-blue-600 font-bold uppercase tracking-tighter">Admin</span>}
-               </div>
-               <button 
-                onClick={onLogout}
-                className="p-2 text-slate-400 hover:text-red-500 transition-colors"
-                title="Logout"
-               >
-                 <LogOut size={16} />
-               </button>
+            <div className="flex items-center gap-3">
+              {/* Notification Bell for Admin Only */}
+              {user.isAdmin && (
+                <div className="relative" ref={notificationRef}>
+                  <button 
+                    onClick={toggleNotifications}
+                    className={`p-2 rounded-full transition-all relative ${showNotifications ? 'bg-slate-900 text-white' : 'bg-white border border-slate-100 text-slate-400 hover:text-slate-900'}`}
+                  >
+                    <Bell size={18} className={hasNew ? 'animate-bounce' : ''} />
+                    {hasNew && (
+                      <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white"></span>
+                    )}
+                  </button>
+
+                  {/* Notification Dropdown */}
+                  {showNotifications && (
+                    <div className="absolute top-12 right-0 w-80 glass rounded-[2rem] shadow-3xl border-white/60 p-6 animate-in slide-in-from-top-2 duration-300 overflow-hidden">
+                      <div className="flex items-center justify-between mb-6">
+                        <div className="flex items-center gap-2">
+                          <ShieldAlert size={14} className="text-blue-500" />
+                          <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-900">Live Login Feed</h4>
+                        </div>
+                        <span className="text-[8px] font-black uppercase tracking-widest text-slate-300">Admin Only</span>
+                      </div>
+
+                      <div className="space-y-4">
+                        {logins.length > 0 ? (
+                          logins.map((login) => (
+                            <div key={login.id} className="flex gap-4 p-3 rounded-2xl hover:bg-white/40 transition-colors border border-transparent hover:border-slate-100">
+                              <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${login.isAdmin ? 'bg-blue-50 text-blue-500' : 'bg-slate-50 text-slate-400'}`}>
+                                <UserIcon size={16} />
+                              </div>
+                              <div className="flex-grow">
+                                <p className="text-xs font-black text-slate-900 uppercase tracking-tight flex items-center gap-1">
+                                  {login.name} {login.isAdmin && <CheckCircle2 size={10} className="text-blue-500" />}
+                                </p>
+                                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none mt-0.5">
+                                  {login.classMajor}
+                                </p>
+                                <div className="flex items-center gap-1 mt-1 text-[8px] text-slate-300 font-black">
+                                  <Clock size={8} /> 
+                                  {login.timestamp ? new Date(login.timestamp.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Now'}
+                                </div>
+                              </div>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="py-8 text-center">
+                            <p className="text-[9px] font-black uppercase tracking-widest text-slate-300">No login activity yet</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <button 
+                onClick={() => handleNavClick('profile')}
+                className={`flex items-center gap-3 p-1 pr-4 rounded-full transition-all border ${currentPage === 'profile' ? 'bg-slate-900 border-slate-900 text-white shadow-xl' : 'bg-white border-slate-100 text-slate-900 hover:border-slate-300'}`}
+              >
+                <div className="w-8 h-8 rounded-full overflow-hidden bg-slate-200 border border-white/50 shadow-sm">
+                  {user.photo ? (
+                    <img src={user.photo} alt="Avatar" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-slate-400">
+                      <UserIcon size={14} />
+                    </div>
+                  )}
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className={`text-[10px] font-black leading-none uppercase tracking-tighter ${currentPage === 'profile' ? 'text-white' : 'text-slate-900'}`}>
+                    {user.name.split(' ')[0]}
+                  </span>
+                  {user.isAdmin && <CheckCircle2 size={12} className="text-blue-500 fill-blue-500/10" />}
+                </div>
+              </button>
             </div>
           </div>
 
@@ -89,11 +217,36 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, userName, 
                 {link.name}
               </button>
             ))}
+            
+            {/* Mobile Notification Feed for Admin */}
+            {user.isAdmin && logins.length > 0 && (
+              <div className="bg-blue-50/30 p-4 rounded-2xl border border-blue-100/50 mt-2">
+                <div className="flex items-center gap-2 mb-3">
+                  <Bell size={14} className="text-blue-500" />
+                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-900">Recent Logins</span>
+                </div>
+                <div className="space-y-2">
+                  {logins.slice(0, 2).map(login => (
+                    <div key={login.id} className="text-[10px] text-slate-500 flex justify-between uppercase font-bold tracking-tight">
+                      <span>{login.name}</span>
+                      <span className="opacity-50">{login.classMajor}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <button 
-              onClick={onLogout}
-              className="flex items-center gap-3 pt-4 text-red-500 font-bold uppercase tracking-widest text-xs"
+              onClick={() => handleNavClick('profile')}
+              className={`flex items-center gap-4 py-4 text-slate-900 font-bold border-t border-white/20 mt-2`}
             >
-              <LogOut size={16} /> Logout System
+              <div className="w-10 h-10 rounded-full overflow-hidden bg-slate-200 border border-slate-100">
+                {user.photo ? <img src={user.photo} alt="P" className="w-full h-full object-cover" /> : <UserIcon size={20} className="m-auto mt-2" />}
+              </div>
+              <div className="flex flex-col">
+                <span className="flex items-center gap-1.5 uppercase text-xs tracking-tight">My Profile {user.isAdmin && <CheckCircle2 size={14} className="text-blue-500 fill-blue-500/10" />}</span>
+                <span className="text-[10px] text-slate-400 uppercase tracking-widest font-black">Account Settings</span>
+              </div>
             </button>
           </div>
         </div>
