@@ -1,15 +1,16 @@
 
 import React from 'react';
-import { Menu, X, User, ShieldCheck } from 'lucide-react';
+import { Menu, X, User, ShieldCheck, LogOut } from 'lucide-react';
 
 interface NavbarProps {
   currentPage: string;
   setCurrentPage: (page: string) => void;
   userName?: string;
   isAdmin?: boolean;
+  onLogout?: () => void;
 }
 
-const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, userName, isAdmin }) => {
+const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, userName, isAdmin, onLogout }) => {
   const [isOpen, setIsOpen] = React.useState(false);
   const [scrolled, setScrolled] = React.useState(false);
 
@@ -40,7 +41,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, userName, 
   return (
     <nav className={`fixed w-full z-50 transition-all duration-300 ${scrolled ? 'py-4' : 'py-6'}`}>
       <div className="container mx-auto px-6">
-        <div className={`glass rounded-full px-6 py-3 flex items-center justify-between transition-all duration-500 ${scrolled ? 'shadow-lg bg-white/60' : 'bg-white/10 border-transparent'}`}>
+        <div className={`glass rounded-full px-6 py-3 flex items-center justify-between transition-all duration-500 ${scrolled ? 'shadow-lg bg-white/70 border-white' : 'bg-white/10 border-transparent'}`}>
           <div className="flex items-center gap-2 cursor-pointer" onClick={() => handleNavClick('home')}>
             <span className="font-artist text-xl font-bold tracking-tighter text-slate-800">X TJKT TWO</span>
           </div>
@@ -50,35 +51,35 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, userName, 
               <button 
                 key={link.id} 
                 onClick={() => handleNavClick(link.id)}
-                className={`text-xs font-semibold uppercase tracking-widest transition-colors ${currentPage === link.id ? 'text-slate-900' : 'text-slate-500 hover:text-slate-900'}`}
+                className={`text-xs font-bold uppercase tracking-widest transition-colors ${currentPage === link.id ? 'text-slate-900' : 'text-slate-400 hover:text-slate-900'}`}
               >
                 {link.name}
               </button>
             ))}
             
-            {/* User Indicator */}
-            <div className="relative group">
-              <div className={`h-8 w-8 rounded-full ${isAdmin ? 'bg-blue-600' : 'bg-slate-900'} text-white flex items-center justify-center text-xs font-bold border-2 border-white shadow-sm transition-colors`} title={userName}>
-                {getInitial(userName)}
-              </div>
-              {isAdmin && (
-                <div className="absolute -top-1 -right-1 bg-white rounded-full text-blue-600 shadow-sm border border-blue-50">
-                  <ShieldCheck size={10} />
-                </div>
-              )}
+            <div className="h-6 w-[1px] bg-slate-200 mx-2"></div>
+
+            <div className="flex items-center gap-4">
+               <div className="flex flex-col items-end">
+                  <span className="text-[10px] font-black text-slate-900 leading-none">{userName?.split(' ')[0]}</span>
+                  {isAdmin && <span className="text-[8px] text-blue-600 font-bold uppercase tracking-tighter">Admin</span>}
+               </div>
+               <button 
+                onClick={onLogout}
+                className="p-2 text-slate-400 hover:text-red-500 transition-colors"
+                title="Logout"
+               >
+                 <LogOut size={16} />
+               </button>
             </div>
           </div>
 
-          <button className="md:hidden p-1 text-slate-800 flex items-center gap-2" onClick={() => setIsOpen(!isOpen)}>
-            <div className={`h-6 w-6 rounded-full ${isAdmin ? 'bg-blue-600' : 'bg-slate-900'} text-white flex items-center justify-center text-[10px] font-bold`}>
-              {getInitial(userName)}
-            </div>
+          <button className="md:hidden p-1 text-slate-800" onClick={() => setIsOpen(!isOpen)}>
             {isOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
         </div>
       </div>
 
-      {/* Mobile Menu */}
       {isOpen && (
         <div className="absolute top-24 left-6 right-6 md:hidden">
           <div className="glass rounded-3xl p-6 flex flex-col gap-4 shadow-2xl animate-in slide-in-from-top duration-300">
@@ -91,22 +92,12 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, userName, 
                 {link.name}
               </button>
             ))}
-            <div className="flex items-center gap-3 pt-4 border-t border-white/20">
-              <div className={`h-10 w-10 rounded-full ${isAdmin ? 'bg-blue-600' : 'bg-slate-900'} text-white flex items-center justify-center font-bold relative`}>
-                {getInitial(userName)}
-                {isAdmin && (
-                  <div className="absolute -top-1 -right-1 bg-white rounded-full p-1 text-blue-600 shadow-sm border border-blue-50">
-                    <ShieldCheck size={12} />
-                  </div>
-                )}
-              </div>
-              <div className="flex flex-col">
-                <span className="text-sm font-bold text-slate-900">{userName || 'User'}</span>
-                <span className="text-[10px] uppercase tracking-widest text-slate-500">
-                  {isAdmin ? 'Administrator Connected' : 'Connected'}
-                </span>
-              </div>
-            </div>
+            <button 
+              onClick={onLogout}
+              className="flex items-center gap-3 pt-4 text-red-500 font-bold uppercase tracking-widest text-xs"
+            >
+              <LogOut size={16} /> Logout System
+            </button>
           </div>
         </div>
       )}
