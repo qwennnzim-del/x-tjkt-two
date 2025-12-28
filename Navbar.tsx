@@ -83,8 +83,6 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, user }) =>
     { name: 'Vibes Kita', id: 'about' },
     { name: 'The Squad', id: 'members' },
     { name: 'Jadwal Tempur', id: 'schedule' },
-    { name: 'Fun Quiz', id: 'quiz' },
-    { name: 'Hall of Fame', id: 'leaderboard' },
   ];
 
   const handleNavClick = (id: string) => {
@@ -218,24 +216,6 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, user }) =>
               </button>
             ))}
             
-            {/* Mobile Notification Feed for Admin */}
-            {user.isAdmin && logins.length > 0 && (
-              <div className="bg-blue-50/30 p-4 rounded-2xl border border-blue-100/50 mt-2">
-                <div className="flex items-center gap-2 mb-3">
-                  <Bell size={14} className="text-blue-500" />
-                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-900">Recent Logins</span>
-                </div>
-                <div className="space-y-2">
-                  {logins.slice(0, 2).map(login => (
-                    <div key={login.id} className="text-[10px] text-slate-500 flex justify-between uppercase font-bold tracking-tight">
-                      <span>{login.name}</span>
-                      <span className="opacity-50">{login.classMajor}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
             <button 
               onClick={() => handleNavClick('profile')}
               className={`flex items-center gap-4 py-4 text-slate-900 font-bold border-t border-white/20 mt-2`}

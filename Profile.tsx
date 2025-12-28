@@ -1,17 +1,6 @@
 
-import React, { useState, useRef, useEffect } from 'react';
-import { Camera, User as UserIcon, Save, Edit2, CheckCircle2, ShieldAlert, Sparkles, MessageSquare, Zap, Trophy, Loader2 } from 'lucide-react';
-import { db } from './firebase';
-import { 
-  collection, 
-  query, 
-  where, 
-  getDocs, 
-  updateDoc, 
-  addDoc, 
-  doc, 
-  serverTimestamp 
-} from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+import React, { useState, useRef } from 'react';
+import { Camera, User as UserIcon, Save, Edit2, CheckCircle2, Sparkles, MessageSquare, Loader2 } from 'lucide-react';
 
 interface ProfileProps {
   user: {
@@ -28,36 +17,8 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpdate }) => {
   const [name, setName] = useState(user.name);
   const [bio, setBio] = useState(user.bio || '');
   const [photo, setPhoto] = useState(user.photo || '');
-  const [customScore, setCustomScore] = useState<number>(0);
   const [isSaving, setIsSaving] = useState(false);
-  const [fetchingScore, setFetchingScore] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // Simpan nama original untuk mencari dokumen di database sebelum diupdate
-  const originalNameRef = useRef(user.name);
-
-  // Fetch current score from leaderboard if admin
-  useEffect(() => {
-    if (user.isAdmin) {
-      const getScore = async () => {
-        setFetchingScore(true);
-        try {
-          // Selalu cari berdasarkan nama user yang sedang login saat ini
-          const q = query(collection(db, "leaderboard"), where("name", "==", user.name));
-          const snap = await getDocs(q);
-          if (!snap.empty) {
-            const data = snap.docs[0].data();
-            setCustomScore(data.score);
-          }
-        } catch (err) {
-          console.error("Error fetching score:", err);
-        } finally {
-          setFetchingScore(false);
-        }
-      };
-      getScore();
-    }
-  }, [user.isAdmin, user.name]);
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -74,50 +35,8 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpdate }) => {
     if (!name.trim()) return alert("Nama tidak boleh kosong!");
     setIsSaving(true);
     
-    try {
-      // 1. Jika Admin, Update Leaderboard Score & Nama di Database Leaderboard
-      if (user.isAdmin) {
-        // Cari data leaderboard berdasarkan nama lama (original)
-        const q = query(collection(db, "leaderboard"), where("name", "==", originalNameRef.current));
-        const snap = await getDocs(q);
-        
-        const actualScore = Number(customScore);
-        let rankTitle = "Dewa Admin Server";
-        if (actualScore < 100) rankTitle = "Admin Junior";
-        if (actualScore < 50) rankTitle = "Kabel Kusut (Admin)";
-
-        if (!snap.empty) {
-          // Update dokumen yang sudah ada
-          const docRef = doc(db, "leaderboard", snap.docs[0].id);
-          await updateDoc(docRef, {
-            name: name, // Update ke nama baru jika user merubah namanya
-            score: actualScore,
-            rankTitle: rankTitle,
-            photo: photo,
-            isAdmin: true,
-            updatedAt: serverTimestamp()
-          });
-        } else {
-          // Buat baru jika belum ada
-          await addDoc(collection(db, "leaderboard"), {
-            name: name,
-            score: actualScore,
-            rankTitle: rankTitle,
-            isAdmin: true,
-            photo: photo,
-            createdAt: serverTimestamp()
-          });
-        }
-        
-        // Bersihkan cache quiz lama jika nama berubah agar tidak bisa kerjakan quiz lagi
-        if (originalNameRef.current !== name) {
-          localStorage.removeItem(`quiz_taken_${originalNameRef.current}`);
-        }
-        // Set cache quiz baru
-        localStorage.setItem(`quiz_taken_${name}`, actualScore.toString());
-      }
-
-      // 2. Update Session Lokal (App State & LocalStorage)
+    // Memberikan delay sedikit untuk kesan sinkronisasi
+    setTimeout(() => {
       const updatedUser = {
         ...user,
         name,
@@ -126,15 +45,9 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpdate }) => {
       };
       
       onUpdate(updatedUser);
-      originalNameRef.current = name; // Update ref ke nama baru setelah sukses
-
-      alert("Profil & Skor God-Mode Berhasil Disinkronkan! ⚡");
-    } catch (err) {
-      console.error("Failed to save profile:", err);
-      alert("Gagal sinkronisasi ke server. Cek koneksi.");
-    } finally {
       setIsSaving(false);
-    }
+      alert("Profil berhasil diperbarui secara lokal! ✨");
+    }, 800);
   };
 
   return (
@@ -197,34 +110,6 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpdate }) => {
           </div>
 
           <div className="space-y-8">
-            {/* Secret Admin Cheat Mode */}
-            {user.isAdmin && (
-              <div className="p-8 bg-amber-50/50 rounded-[2.5rem] border-2 border-amber-200 border-dashed relative overflow-hidden group/admin">
-                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover/admin:opacity-20 transition-opacity">
-                  <Zap size={60} className="text-amber-500" />
-                </div>
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-8 h-8 bg-amber-400 text-white rounded-xl flex items-center justify-center shadow-lg">
-                    <Zap size={16} className="fill-white" />
-                  </div>
-                  <h4 className="text-[10px] font-black uppercase tracking-widest text-amber-600">Admin Cheat Mode (Score Override)</h4>
-                </div>
-                
-                <div className="relative">
-                  <Trophy className="absolute left-4 top-1/2 -translate-y-1/2 text-amber-400" size={20} />
-                  <input 
-                    type="number" 
-                    value={customScore}
-                    onChange={(e) => setCustomScore(parseInt(e.target.value) || 0)}
-                    className="w-full pl-12 pr-4 py-5 bg-white/80 border border-amber-200 rounded-2xl outline-none focus:ring-4 focus:ring-amber-400/20 font-artist text-3xl font-black text-slate-900"
-                    placeholder="Set Point Manual"
-                  />
-                  {fetchingScore && <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 text-amber-400 animate-spin" size={16} />}
-                </div>
-                <p className="mt-4 text-[9px] font-bold text-amber-500 uppercase tracking-widest">Skor ini akan tertanam permanen di database global.</p>
-              </div>
-            )}
-
             <div>
               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-3">Display Name</label>
               <div className="relative group">
@@ -262,7 +147,7 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpdate }) => {
                 ) : (
                   <Save size={18} className="group-hover:rotate-12 transition-transform" />
                 )}
-                {isSaving ? 'Sychronizing...' : 'Save & Overwrite Score'}
+                {isSaving ? 'Updating...' : 'Save Profile Changes'}
               </button>
             </div>
           </div>

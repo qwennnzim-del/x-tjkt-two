@@ -6,8 +6,6 @@ import Home from './Home';
 import About from './About';
 import Members from './Members';
 import Schedule from './Schedule';
-import Quiz from './Quiz';
-import Leaderboard from './Leaderboard';
 import Profile from './Profile';
 import Footer from './Footer';
 import Login from './Login';
@@ -55,10 +53,6 @@ const App = () => {
         return <Members />;
       case 'schedule':
         return <Schedule />;
-      case 'quiz':
-        return <Quiz user={user} onSeeLeaderboard={() => setCurrentPage('leaderboard')} />;
-      case 'leaderboard':
-        return <Leaderboard />;
       case 'profile':
         return <Profile user={user} onUpdate={handleUpdateProfile} />;
       default:
