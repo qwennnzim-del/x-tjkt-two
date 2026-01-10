@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
 import Navbar from './Navbar';
 import Home from './Home';
@@ -11,6 +11,7 @@ import Footer from './Footer';
 import Login from './Login';
 import GlobalWall from './GlobalWall';
 import Polling from './Polling';
+import NotificationSystem from './NotificationSystem';
 
 interface UserData {
   name: string;
@@ -77,6 +78,9 @@ const App = () => {
       <div className="fixed inset-0 pointer-events-none opacity-[0.04] z-[9999] bg-[url('https://grainy-gradients.vercel.app/noise.svg')]"></div>
       <div className="fixed top-0 left-0 w-full h-full pointer-events-none z-[9998] bg-gradient-to-tr from-blue-50/10 via-transparent to-purple-50/10"></div>
       
+      {/* GLOBAL NOTIFICATION SYSTEM */}
+      <NotificationSystem />
+
       {user && (
         <Navbar 
           currentPage={currentPage} 
