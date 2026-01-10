@@ -1,13 +1,15 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Menu, X, User as UserIcon, CheckCircle2, Bell, ShieldAlert, Clock, MoreVertical, LogOut, Smartphone, Monitor } from 'lucide-react';
+import { Menu, X, User as UserIcon, CheckCircle2, Bell, ShieldAlert, Clock, MoreVertical, LogOut, Smartphone, Monitor, Trash2 } from 'lucide-react';
 import { db } from './firebase';
 import { 
   collection, 
   query, 
   orderBy, 
   limit, 
-  onSnapshot 
+  onSnapshot,
+  writeBatch,
+  getDocs
 } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
 interface NavbarProps {
@@ -37,6 +39,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, user }) =>
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [logins, setLogins] = useState<LoginActivity[]>([]);
   const [hasNew, setHasNew] = useState(false);
+  const [isClearing, setIsClearing] = useState(false);
   
   const notificationRef = useRef<HTMLDivElement>(null);
   const moreMenuRef = useRef<HTMLDivElement>(null);
@@ -54,7 +57,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, user }) =>
     const q = query(
       collection(db, "user_logins"),
       orderBy("timestamp", "desc"),
-      limit(10)
+      limit(20) // Menampilkan lebih banyak history
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -87,6 +90,32 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, user }) =>
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  const handleClearNotifications = async () => {
+    if (!user.isAdmin) return;
+    if (!window.confirm("Hapus SEMUA riwayat notifikasi login? Tindakan ini tidak bisa dibatalkan.")) return;
+
+    setIsClearing(true);
+    try {
+      // Ambil semua dokumen di collection user_logins
+      const q = query(collection(db, "user_logins"));
+      const snapshot = await getDocs(q);
+
+      // Gunakan batch untuk menghapus banyak data sekaligus
+      const batch = writeBatch(db);
+      snapshot.docs.forEach((doc) => {
+        batch.delete(doc.ref);
+      });
+
+      await batch.commit();
+      setHasNew(false);
+    } catch (error) {
+      console.error("Error clearing notifications:", error);
+      alert("Gagal menghapus notifikasi.");
+    } finally {
+      setIsClearing(false);
+    }
+  };
 
   const navLinks = [
     { name: 'Home Base', id: 'home' },
@@ -161,9 +190,19 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, user }) =>
                           <div className="p-1.5 bg-blue-50 text-blue-600 rounded-lg">
                             <ShieldAlert size={14} />
                           </div>
-                          <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-900">Live Traffic Feed</h4>
+                          <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-900">Live Traffic</h4>
                         </div>
-                        <span className="text-[8px] font-black uppercase tracking-widest text-slate-300">Admin Eyes Only</span>
+                        
+                        {/* Tombol Hapus Semua Notifikasi */}
+                        {logins.length > 0 && (
+                          <button 
+                            onClick={handleClearNotifications}
+                            disabled={isClearing}
+                            className="flex items-center gap-1.5 px-3 py-1 bg-red-50 text-red-500 hover:bg-red-500 hover:text-white rounded-full transition-all text-[8px] font-black uppercase tracking-widest disabled:opacity-50"
+                          >
+                            {isClearing ? 'Cleaning...' : <><Trash2 size={10} /> Clear All</>}
+                          </button>
+                        )}
                       </div>
 
                       <div className="space-y-3 max-h-[400px] overflow-y-auto no-scrollbar">
@@ -210,7 +249,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, user }) =>
                             <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
                               <Bell size={20} className="text-slate-200" />
                             </div>
-                            <p className="text-[9px] font-black uppercase tracking-widest text-slate-300">Silence is golden. No activity.</p>
+                            <p className="text-[9px] font-black uppercase tracking-widest text-slate-300">Clean. No new activity.</p>
                           </div>
                         )}
                       </div>
