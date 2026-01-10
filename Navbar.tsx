@@ -57,7 +57,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, user }) =>
     const q = query(
       collection(db, "user_logins"),
       orderBy("timestamp", "desc"),
-      limit(20) // Menampilkan lebih banyak history
+      limit(20) 
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -97,11 +97,9 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, user }) =>
 
     setIsClearing(true);
     try {
-      // Ambil semua dokumen di collection user_logins
       const q = query(collection(db, "user_logins"));
       const snapshot = await getDocs(q);
 
-      // Gunakan batch untuk menghapus banyak data sekaligus
       const batch = writeBatch(db);
       snapshot.docs.forEach((doc) => {
         batch.delete(doc.ref);
@@ -120,8 +118,9 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, user }) =>
   const navLinks = [
     { name: 'Home', id: 'home' },
     { name: 'Vibes', id: 'about' },
+    { name: 'Cinema', id: 'cinema' }, // NEW: Menu Cinema
     { name: 'Wall', id: 'wall' },
-    { name: 'Vote', id: 'voting' }, // New Feature
+    { name: 'Vote', id: 'voting' },
     { name: 'Squad', id: 'members' },
     { name: 'Jadwal', id: 'schedule' },
   ];
@@ -166,13 +165,12 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, user }) =>
             ))}
           </div>
 
-          {/* RIGHT SIDE ACTIONS (Admin Tools + Profile + Mobile Menu) */}
+          {/* RIGHT SIDE ACTIONS */}
           <div className="flex items-center gap-2">
             
-            {/* ADMIN FEATURES (Visible on ALL screens) */}
+            {/* ADMIN FEATURES */}
             {user.isAdmin && (
               <div className="flex items-center gap-2 mr-1">
-                {/* REAL-TIME NOTIFICATION BELL */}
                 <div className="relative" ref={notificationRef}>
                   <button 
                     onClick={() => { setShowNotifications(!showNotifications); setHasNew(false); }}
@@ -195,7 +193,6 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, user }) =>
                           <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-900">Live Traffic</h4>
                         </div>
                         
-                        {/* Tombol Hapus Semua Notifikasi */}
                         {logins.length > 0 && (
                           <button 
                             onClick={handleClearNotifications}
@@ -232,7 +229,6 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, user }) =>
                                   {login.classMajor}
                                 </p>
 
-                                {/* DEVICE INFO SECTION */}
                                 <div className="flex items-center gap-3 mt-2 pt-2 border-t border-dashed border-slate-100">
                                   <div className="flex items-center gap-1 text-[9px] font-bold text-slate-500">
                                     {login.deviceType?.includes('HP') ? <Smartphone size={10} /> : <Monitor size={10} />}
@@ -263,7 +259,6 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, user }) =>
                   )}
                 </div>
 
-                {/* MORE OPTIONS (TITIK 3) */}
                 <div className="relative" ref={moreMenuRef}>
                   <button 
                     onClick={() => setShowMoreMenu(!showMoreMenu)}
@@ -287,7 +282,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, user }) =>
               </div>
             )}
 
-            {/* PROFILE BUTTON (Desktop Only) */}
+            {/* PROFILE BUTTON */}
             <button 
               onClick={() => handleNavClick('profile')}
               className={`hidden lg:flex items-center gap-3 p-1 pr-4 rounded-full transition-all border ${currentPage === 'profile' ? 'bg-slate-900 border-slate-900 text-white shadow-xl' : 'bg-white border-slate-100 text-slate-900 hover:border-slate-300'}`}
@@ -309,7 +304,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, user }) =>
               </div>
             </button>
 
-            {/* MOBILE MENU TOGGLE (Garis 3) */}
+            {/* MOBILE MENU TOGGLE */}
             <button className="lg:hidden p-2 text-slate-800 bg-white border border-slate-100 rounded-full hover:bg-slate-50" onClick={() => setIsOpen(!isOpen)}>
               {isOpen ? <X size={20} /> : <Menu size={20} />}
             </button>

@@ -9,7 +9,8 @@ import {
   ShieldAlert,
   User as UserIcon,
   CheckCircle2,
-  Edit2
+  Edit2,
+  Film
 } from 'lucide-react';
 
 interface HomeProps {
@@ -87,11 +88,11 @@ const Home: React.FC<HomeProps> = ({ onExplore, user }) => {
             <button onClick={() => onExplore('about')} className="px-10 py-5 bg-slate-900 text-white rounded-full hover:bg-slate-800 transition-all shadow-2xl flex items-center justify-center gap-3 group text-xs font-bold uppercase tracking-widest">
               Vibes Kita <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
             </button>
+            <button onClick={() => onExplore('cinema')} className="px-10 py-5 glass border-red-200 bg-red-50 text-red-600 rounded-full hover:bg-red-600 hover:text-white transition-all text-xs font-bold uppercase tracking-widest flex items-center gap-2">
+              <Film size={14} /> Bioskop
+            </button>
             <button onClick={() => onExplore('members')} className="px-10 py-5 glass border-slate-200 text-slate-900 rounded-full hover:bg-white transition-all text-xs font-bold uppercase tracking-widest">
               Squad List
-            </button>
-            <button onClick={() => onExplore('profile')} className="px-10 py-5 glass border-blue-100 bg-blue-50/50 text-blue-600 rounded-full hover:bg-white transition-all text-xs font-bold uppercase tracking-widest flex items-center gap-2">
-              <Edit2 size={14} /> My Profile
             </button>
           </div>
         </div>

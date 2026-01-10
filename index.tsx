@@ -4,6 +4,7 @@ import { createRoot } from 'react-dom/client';
 import Navbar from './Navbar';
 import Home from './Home';
 import About from './About';
+import Cinema from './Cinema'; // Import Cinema Page
 import Members from './Members';
 import Schedule from './Schedule';
 import Profile from './Profile';
@@ -52,6 +53,8 @@ const App = () => {
         return <Home onExplore={setCurrentPage} user={user} />;
       case 'about':
         return <About isAdmin={user.isAdmin} />;
+      case 'cinema': // Route Baru
+        return <Cinema isAdmin={user.isAdmin} />;
       case 'members':
         return <Members />;
       case 'schedule':
