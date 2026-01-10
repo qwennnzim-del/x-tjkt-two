@@ -13,6 +13,7 @@ import Login from './Login';
 import GlobalWall from './GlobalWall';
 import Polling from './Polling';
 import NotificationSystem from './NotificationSystem';
+import ChatAssistant from './ChatAssistant'; // Import AI Chat
 
 interface UserData {
   name: string;
@@ -83,6 +84,9 @@ const App = () => {
       
       {/* GLOBAL NOTIFICATION SYSTEM */}
       <NotificationSystem />
+
+      {/* AI CHAT ASSISTANT (Hanya muncul jika sudah login) */}
+      {user && <ChatAssistant />}
 
       {user && (
         <Navbar 
