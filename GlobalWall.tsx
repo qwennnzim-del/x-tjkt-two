@@ -166,9 +166,7 @@ const GlobalWall: React.FC<GlobalWallProps> = ({ user }) => {
 
   return (
     <section className="min-h-screen pt-32 pb-20 px-4 md:px-6 bg-clean relative overflow-hidden">
-      {/* Background Decor */}
-      <div className="absolute top-0 left-0 w-full h-full opacity-30 pointer-events-none" 
-           style={{ backgroundImage: 'radial-gradient(#cbd5e1 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
+      {/* Background Decor Removed - Using Global .bg-clean */}
 
       <div className="container mx-auto max-w-6xl relative z-10">
         <header className="text-center mb-12 animate-in slide-in-from-top duration-700">
