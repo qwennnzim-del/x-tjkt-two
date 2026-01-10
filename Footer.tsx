@@ -61,7 +61,7 @@ const Footer = () => {
             </div>
           </div>
           <div className="flex flex-col justify-end">
-            <h4 className="uppercase tracking-[0.3em] text-xs mb-8 font-bold text-slate-500">X TJKT TWO 2024</h4>
+            <h4 className="uppercase tracking-[0.3em] text-xs mb-8 font-bold text-slate-500">X TJKT TWO 2026</h4>
             <p className="font-handwriting text-3xl text-white/80">"Kita bukan teman, kita keluarga."</p>
           </div>
         </div>

@@ -120,6 +120,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, user }) =>
   const navLinks = [
     { name: 'Home Base', id: 'home' },
     { name: 'Vibes Kita', id: 'about' },
+    { name: 'The Wall', id: 'wall' }, // New Feature
     { name: 'The Squad', id: 'members' },
     { name: 'Jadwal Tempur', id: 'schedule' },
   ];

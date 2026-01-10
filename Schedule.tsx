@@ -253,7 +253,7 @@ const Schedule = () => {
 
                   {/* Footer Card */}
                   <div className="mt-12 pt-8 border-t border-slate-100/50 flex flex-col md:flex-row items-center justify-between gap-6 opacity-50">
-                    <p className="text-[9px] font-black uppercase tracking-[0.4em] text-slate-400">© 2024 Class Management — X TJKT TWO</p>
+                    <p className="text-[9px] font-black uppercase tracking-[0.4em] text-slate-400">© 2026 Class Management — X TJKT TWO</p>
                     <div className="flex gap-2">
                       {days.map((_, dotIdx) => (
                         <div key={dotIdx} className={`w-1 h-1 rounded-full transition-all duration-300 ${activeDay === dotIdx ? 'bg-slate-900 w-4' : 'bg-slate-200'}`}></div>

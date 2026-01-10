@@ -128,7 +128,7 @@ const About: React.FC<AboutProps> = ({ isAdmin }) => {
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col justify-end p-8 md:p-10">
                     <p className="font-handwriting text-3xl text-white mb-2">Our Vibes ✨</p>
                     <div className="flex items-center justify-between">
-                       <span className="text-[9px] font-black text-white/50 uppercase tracking-widest">X TJKT TWO 2024</span>
+                       <span className="text-[9px] font-black text-white/50 uppercase tracking-widest">X TJKT TWO 2025</span>
                        {isAdmin && (
                         <button 
                           onClick={(e) => { e.stopPropagation(); removeMoment(moment.id); }} 

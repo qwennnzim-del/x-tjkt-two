@@ -9,6 +9,7 @@ import Schedule from './Schedule';
 import Profile from './Profile';
 import Footer from './Footer';
 import Login from './Login';
+import GlobalWall from './GlobalWall';
 
 interface UserData {
   name: string;
@@ -55,6 +56,8 @@ const App = () => {
         return <Schedule />;
       case 'profile':
         return <Profile user={user} onUpdate={handleUpdateProfile} />;
+      case 'wall':
+        return <GlobalWall user={user} />;
       default:
         return <Home onExplore={setCurrentPage} user={user} />;
     }
