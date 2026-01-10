@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, Trash2, Heart, Sparkles, MessageSquare, StickyNote, PenTool, CheckCircle2, User as UserIcon, CornerDownRight, X, Image as ImageIcon, Loader2 } from 'lucide-react';
+import { Send, Trash2, Heart, Sparkles, MessageSquare, StickyNote, PenTool, CheckCircle2, User as UserIcon, CornerDownRight, X, Image as ImageIcon, Loader2, Bot } from 'lucide-react';
 import { db } from './firebase';
 import { 
   collection, 
@@ -58,6 +58,7 @@ const GlobalWall: React.FC<GlobalWallProps> = ({ user }) => {
   // State for Replies
   const [activeReplyId, setActiveReplyId] = useState<string | null>(null);
   const [replyText, setReplyText] = useState('');
+  const [customReplyName, setCustomReplyName] = useState(''); // State khusus Admin
   const [isReplying, setIsReplying] = useState(false);
 
   const gradients = [
@@ -155,12 +156,24 @@ const GlobalWall: React.FC<GlobalWallProps> = ({ user }) => {
     if (!replyText.trim()) return;
     setIsReplying(true);
 
+    // LOGIKA ADMIN CUSTOM NAME
+    // Jika user admin DAN kolom custom name terisi, gunakan nama custom dan hilangkan status admin
+    let senderName = user.name.split(' ')[0];
+    let isAdminSender = user.isAdmin;
+    let senderPhoto = user.photo || null;
+
+    if (user.isAdmin && customReplyName.trim()) {
+      senderName = customReplyName.trim();
+      isAdminSender = false; // Agar terlihat seperti user biasa
+      senderPhoto = null; // Gunakan avatar default agar tidak ketahuan foto admin
+    }
+
     const newReply: Reply = {
       id: crypto.randomUUID(),
       text: replyText,
-      sender: user.name.split(' ')[0],
-      photo: user.photo || null,
-      isAdmin: user.isAdmin,
+      sender: senderName,
+      photo: senderPhoto,
+      isAdmin: isAdminSender,
       createdAt: new Date().toISOString()
     };
 
@@ -170,6 +183,7 @@ const GlobalWall: React.FC<GlobalWallProps> = ({ user }) => {
         replies: arrayUnion(newReply)
       });
       setReplyText('');
+      setCustomReplyName(''); // Reset nama custom
       setActiveReplyId(null);
     } catch (error) {
       console.error("Error sending reply:", error);
@@ -341,7 +355,10 @@ const GlobalWall: React.FC<GlobalWallProps> = ({ user }) => {
                 {/* Actions */}
                 <div className="flex items-center justify-between border-t border-black/5 pt-3 mt-auto">
                    <button 
-                    onClick={() => setActiveReplyId(activeReplyId === note.id ? null : note.id)}
+                    onClick={() => {
+                       setActiveReplyId(activeReplyId === note.id ? null : note.id);
+                       setCustomReplyName(''); // Reset saat toggle
+                    }}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-colors text-[10px] font-black uppercase tracking-widest ${activeReplyId === note.id ? 'bg-slate-900 text-white' : 'text-slate-500 hover:bg-black/5'}`}
                   >
                     <MessageSquare size={12} />
@@ -391,25 +408,42 @@ const GlobalWall: React.FC<GlobalWallProps> = ({ user }) => {
 
                     {/* Reply Input */}
                     {activeReplyId === note.id && (
-                      <div className="flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
-                        <CornerDownRight size={16} className="text-slate-300 ml-1" />
-                        <div className="flex-grow relative">
-                          <input
-                            type="text"
-                            value={replyText}
-                            onChange={(e) => setReplyText(e.target.value)}
-                            placeholder="Balas..."
-                            className="w-full pl-4 pr-10 py-2.5 bg-white/60 rounded-xl text-xs border border-transparent focus:border-slate-300 focus:bg-white outline-none transition-all placeholder:text-slate-400 text-slate-900"
-                            autoFocus
-                            onKeyDown={(e) => e.key === 'Enter' && handleReplySubmit(note.id)}
-                          />
-                          <button 
-                            onClick={() => handleReplySubmit(note.id)}
-                            disabled={!replyText.trim() || isReplying}
-                            className="absolute right-1 top-1 p-1.5 bg-slate-900 text-white rounded-lg hover:scale-105 transition-transform disabled:opacity-50"
-                          >
-                             {isReplying ? <Loader2 size={12} className="animate-spin" /> : <Send size={12} />}
-                          </button>
+                      <div className="animate-in fade-in slide-in-from-top-2">
+                        
+                        {/* ADMIN ONLY: Custom Name Input */}
+                        {user.isAdmin && (
+                          <div className="flex items-center gap-2 mb-2 bg-slate-900/5 p-2 rounded-xl">
+                            <Bot size={14} className="text-slate-500 ml-1" />
+                            <input 
+                              type="text"
+                              value={customReplyName}
+                              onChange={(e) => setCustomReplyName(e.target.value)}
+                              placeholder="Nama Samaran (Kosongkan = Admin Asli)"
+                              className="w-full bg-transparent text-[10px] font-bold uppercase tracking-widest text-slate-900 placeholder:text-slate-400 outline-none"
+                            />
+                          </div>
+                        )}
+
+                        <div className="flex items-center gap-2">
+                          <CornerDownRight size={16} className="text-slate-300 ml-1" />
+                          <div className="flex-grow relative">
+                            <input
+                              type="text"
+                              value={replyText}
+                              onChange={(e) => setReplyText(e.target.value)}
+                              placeholder={user.isAdmin && customReplyName ? `Balas sebagai "${customReplyName}"...` : "Balas..."}
+                              className="w-full pl-4 pr-10 py-2.5 bg-white/60 rounded-xl text-xs border border-transparent focus:border-slate-300 focus:bg-white outline-none transition-all placeholder:text-slate-400 text-slate-900"
+                              autoFocus
+                              onKeyDown={(e) => e.key === 'Enter' && handleReplySubmit(note.id)}
+                            />
+                            <button 
+                              onClick={() => handleReplySubmit(note.id)}
+                              disabled={!replyText.trim() || isReplying}
+                              className="absolute right-1 top-1 p-1.5 bg-slate-900 text-white rounded-lg hover:scale-105 transition-transform disabled:opacity-50"
+                            >
+                               {isReplying ? <Loader2 size={12} className="animate-spin" /> : <Send size={12} />}
+                            </button>
+                          </div>
                         </div>
                       </div>
                     )}
