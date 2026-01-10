@@ -345,12 +345,14 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, user }) =>
               </div>
             </button>
             
-            <button 
-              onClick={handleLogout}
-              className="w-full flex items-center justify-center gap-3 py-4 bg-red-50 text-red-500 rounded-2xl text-[10px] font-black uppercase tracking-widest mt-2"
-            >
-              <LogOut size={16} /> Logout Securely
-            </button>
+            {user.isAdmin && (
+              <button 
+                onClick={handleLogout}
+                className="w-full flex items-center justify-center gap-3 py-4 bg-red-50 text-red-500 rounded-2xl text-[10px] font-black uppercase tracking-widest mt-2"
+              >
+                <LogOut size={16} /> Logout Securely
+              </button>
+            )}
           </div>
         </div>
       )}
