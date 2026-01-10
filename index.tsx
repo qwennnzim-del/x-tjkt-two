@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
-import { Settings, Clock, AlertTriangle, Hammer, RefreshCw, Lock, Unlock, WifiOff } from 'lucide-react'; // Added icons
+import { Settings, Clock, AlertTriangle, Hammer, RefreshCw, Lock, Unlock, WifiOff, Crown } from 'lucide-react'; // Added icons
 import Navbar from './Navbar';
 import Home from './Home';
 import About from './About';
@@ -60,7 +60,6 @@ const MaintenanceScreen: React.FC<MaintenanceProps> = ({ onUnlock }) => {
         setStatusText("CONNECTION TIMEOUT. RETRYING...");
 
         // Tahan di 00:00:00 selama 3 detik (3000ms), lalu reset
-        // Kita pakai logika sederhana: jika distance < -3000, berarti sudah lewat 3 detik
         if (distance < -3000) {
             // Reset ke 5 Jam lagi
             const newTarget = currentTime + (DURATION_HOURS * 60 * 60 * 1000);
@@ -127,32 +126,40 @@ const MaintenanceScreen: React.FC<MaintenanceProps> = ({ onUnlock }) => {
 
       <div className={`relative max-w-lg w-full glass bg-white/5 border-white/10 p-10 rounded-[3rem] text-center shadow-2xl backdrop-blur-xl transition-all duration-700 ${isUnlocking ? 'scale-110 opacity-0 blur-xl' : 'scale-100 opacity-100'} ${isError ? 'border-red-500/50 shadow-red-900/50' : ''}`}>
         
-        <div className={`w-20 h-20 rounded-3xl mx-auto flex items-center justify-center shadow-lg mb-8 animate-bounce transition-colors duration-500 ${isError ? 'bg-red-500 shadow-red-500/40' : 'bg-gradient-to-tr from-amber-400 to-orange-500 shadow-orange-500/20'}`}>
+        {/* HEADER X TJKT TWO */}
+        <div className="mb-10 relative group cursor-default">
+           <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full font-artist text-5xl md:text-7xl font-black tracking-tighter transition-colors duration-500 blur-sm opacity-50 ${isError ? 'text-red-500' : 'text-blue-400'}`}>
+              X TJKT TWO
+           </div>
+           <h1 className={`relative z-10 font-artist text-4xl md:text-6xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-b transition-all duration-500 ${isError ? 'from-red-300 to-red-600' : 'from-white to-slate-400'}`}>
+              X TJKT TWO
+           </h1>
+           <div className={`mx-auto h-[1px] w-24 mt-4 transition-colors duration-500 ${isError ? 'bg-red-500/50' : 'bg-white/20'}`}></div>
+        </div>
+
+        <div className={`w-16 h-16 rounded-2xl mx-auto flex items-center justify-center shadow-lg mb-6 animate-bounce transition-colors duration-500 ${isError ? 'bg-red-500 shadow-red-500/40' : 'bg-gradient-to-tr from-amber-400 to-orange-500 shadow-orange-500/20'}`}>
           {isError ? (
-            <WifiOff size={40} className="text-white animate-pulse" />
+            <WifiOff size={32} className="text-white animate-pulse" />
           ) : (
-            <Settings size={40} className="text-white animate-spin-slow duration-[3000ms]" />
+            <Settings size={32} className="text-white animate-spin-slow duration-[3000ms]" />
           )}
         </div>
 
-        <h1 className="font-artist text-5xl md:text-6xl font-black text-white mb-6 tracking-tighter leading-none">
-          SYSTEM <br/>
-          <span className={`text-transparent bg-clip-text transition-colors duration-500 ${isError ? 'bg-red-500' : 'bg-gradient-to-r from-blue-400 to-purple-400'}`}>
-            {isError ? 'ERROR' : 'UPDATE'}
-          </span>
-        </h1>
+        <h2 className="text-xl font-bold text-white mb-2 tracking-widest uppercase">
+          SYSTEM <span className={`transition-colors duration-500 ${isError ? 'text-red-500' : 'text-blue-400'}`}>{isError ? 'FAILURE' : 'UPDATE'}</span>
+        </h2>
 
-        <div className="space-y-4 mb-10">
+        <div className="space-y-4 mb-8">
           <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border transition-colors duration-500 ${isError ? 'bg-red-500/20 border-red-500/50' : 'bg-white/5 border-white/10'}`}>
             {isError ? <AlertTriangle size={14} className="text-red-400" /> : <RefreshCw size={14} className="text-blue-400 animate-spin" />}
             <span className={`text-[10px] font-black uppercase tracking-widest ${isError ? 'text-red-300' : 'text-blue-200'}`}>
               {statusText}
             </span>
           </div>
-          <p className="text-slate-400 text-sm font-medium leading-relaxed max-w-sm mx-auto">
+          <p className="text-slate-400 text-xs font-medium leading-relaxed max-w-sm mx-auto">
             {isError 
               ? "Koneksi ke server terputus. Sistem sedang mencoba menghubungkan ulang secara otomatis..." 
-              : "Mohon bersabar, website sedang di-update ke versi terbaru dengan fitur yang lebih canggih. Kami sedang melakukan pemeliharaan server besar-besaran."
+              : "Website sedang dalam perbaikan besar-besaran untuk fitur yang lebih canggih. Mohon tunggu."
             }
           </p>
         </div>
@@ -163,30 +170,37 @@ const MaintenanceScreen: React.FC<MaintenanceProps> = ({ onUnlock }) => {
             onClick={handleSecretClick}
             className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500 mb-4 cursor-default select-none active:text-slate-300 transition-colors"
           >
-            ESTIMASI WAKTU (JAM) {clickCount > 0 && clickCount < 5 && <span className="text-slate-800">.</span>}
+            ESTIMASI WAKTU {clickCount > 0 && clickCount < 5 && <span className="text-slate-800">.</span>}
           </p>
           
-          <div className="flex items-center justify-center gap-4 text-white font-mono">
+          <div className="flex items-center justify-center gap-3 text-white font-mono">
             <div className="flex flex-col gap-1">
-              <span className={`text-4xl md:text-5xl font-bold bg-white/5 p-3 rounded-xl min-w-[70px] border transition-colors duration-500 ${isError ? 'text-red-500 border-red-500/20' : 'border-white/10'}`}>{time.h}</span>
+              <span className={`text-4xl font-bold bg-white/5 p-3 rounded-xl min-w-[60px] border transition-colors duration-500 ${isError ? 'text-red-500 border-red-500/20' : 'border-white/10'}`}>{time.h}</span>
               <span className="text-[8px] uppercase tracking-widest text-slate-500">Jam</span>
             </div>
             <span className={`text-2xl font-bold ${isError ? 'text-red-500' : 'text-slate-600'}`}>:</span>
             <div className="flex flex-col gap-1">
-              <span className={`text-4xl md:text-5xl font-bold bg-white/5 p-3 rounded-xl min-w-[70px] border transition-colors duration-500 ${isError ? 'text-red-500 border-red-500/20' : 'border-white/10'}`}>{time.m}</span>
-              <span className="text-[8px] uppercase tracking-widest text-slate-500">Menit</span>
+              <span className={`text-4xl font-bold bg-white/5 p-3 rounded-xl min-w-[60px] border transition-colors duration-500 ${isError ? 'text-red-500 border-red-500/20' : 'border-white/10'}`}>{time.m}</span>
+              <span className="text-[8px] uppercase tracking-widest text-slate-500">Mnt</span>
             </div>
             <span className={`text-2xl font-bold ${isError ? 'text-red-500' : 'text-slate-600'}`}>:</span>
             <div className="flex flex-col gap-1">
-              <span className={`text-4xl md:text-5xl font-bold bg-white/5 p-3 rounded-xl min-w-[70px] border transition-colors duration-500 ${isError ? 'text-red-500 border-red-500/20' : 'border-white/10 text-red-400'}`}>{time.s}</span>
-              <span className="text-[8px] uppercase tracking-widest text-slate-500">Detik</span>
+              <span className={`text-4xl font-bold bg-white/5 p-3 rounded-xl min-w-[60px] border transition-colors duration-500 ${isError ? 'text-red-500 border-red-500/20' : 'border-white/10 text-red-400'}`}>{time.s}</span>
+              <span className="text-[8px] uppercase tracking-widest text-slate-500">Dtk</span>
             </div>
           </div>
         </div>
 
-        <div className="flex items-center justify-center gap-2 text-slate-600">
-          <Lock size={12} />
-          <span className="text-[9px] uppercase tracking-widest font-bold">Access Restricted to Admin</span>
+        {/* ADMIN HEZELL FOOTER */}
+        <div className={`border-t pt-6 transition-colors duration-500 ${isError ? 'border-red-500/20' : 'border-white/10'}`}>
+          <p className="text-[9px] text-slate-500 uppercase tracking-widest font-bold mb-2">Maintenance Protected By</p>
+          <div className={`inline-flex items-center gap-3 px-6 py-2 rounded-full border bg-white/5 transition-all duration-500 ${isError ? 'border-red-500/40 bg-red-900/10' : 'border-white/10'}`}>
+            <span className={`w-2 h-2 rounded-full animate-pulse ${isError ? 'bg-red-500' : 'bg-emerald-500'}`}></span>
+            <div className="flex items-center gap-2">
+               <Crown size={14} className={`transition-colors duration-500 ${isError ? 'text-red-400' : 'text-amber-400'}`} />
+               <span className={`font-artist text-xl font-bold tracking-widest transition-colors duration-500 ${isError ? 'text-red-200' : 'text-white'}`}>HEZELL</span>
+            </div>
+          </div>
         </div>
 
       </div>
