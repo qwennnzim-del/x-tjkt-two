@@ -1,6 +1,6 @@
 
-import React, { useState, useEffect } from 'react';
-import { Send, Trash2, Heart, Sparkles, MessageSquare, StickyNote, PenTool, CheckCircle2, User as UserIcon, CornerDownRight, X } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Send, Trash2, Heart, Sparkles, MessageSquare, StickyNote, PenTool, CheckCircle2, User as UserIcon, CornerDownRight, X, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { db } from './firebase';
 import { 
   collection, 
@@ -30,7 +30,7 @@ interface Reply {
   sender: string;
   photo?: string | null;
   isAdmin: boolean;
-  createdAt: string; // ISO String for simpler handling in array
+  createdAt: string;
 }
 
 interface Note {
@@ -38,10 +38,11 @@ interface Note {
   text: string;
   sender: string;
   photo?: string;
+  postImage?: string; // New field for posted image
   isAdmin?: boolean;
-  color: string; // Now stores gradient class
+  color: string;
   likes: number;
-  likedBy?: string[]; // Array to store names of users who liked
+  likedBy?: string[];
   createdAt: any;
   replies?: Reply[];
 }
@@ -51,6 +52,8 @@ const GlobalWall: React.FC<GlobalWallProps> = ({ user }) => {
   const [newMessage, setNewMessage] = useState('');
   const [selectedColor, setSelectedColor] = useState('bg-gradient-to-br from-yellow-50 to-amber-100');
   const [isSending, setIsSending] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   // State for Replies
   const [activeReplyId, setActiveReplyId] = useState<string | null>(null);
@@ -78,9 +81,30 @@ const GlobalWall: React.FC<GlobalWallProps> = ({ user }) => {
     return () => unsubscribe();
   }, []);
 
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) { // Limit 2MB for base64 performance
+        alert("Ukuran foto terlalu besar! Maksimal 2MB.");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setSelectedImage(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeSelectedImage = () => {
+    setSelectedImage(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
   const handlePost = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim()) return;
+    // Allow post if text exists OR image exists
+    if (!newMessage.trim() && !selectedImage) return;
 
     setIsSending(true);
     try {
@@ -88,6 +112,7 @@ const GlobalWall: React.FC<GlobalWallProps> = ({ user }) => {
         text: newMessage,
         sender: user.name.split(' ')[0], // Nama Depan
         photo: user.photo || null,
+        postImage: selectedImage || null,
         isAdmin: user.isAdmin,
         color: selectedColor,
         likes: 0,
@@ -96,6 +121,7 @@ const GlobalWall: React.FC<GlobalWallProps> = ({ user }) => {
         replies: []
       });
       setNewMessage('');
+      setSelectedImage(null);
       setIsSending(false);
     } catch (error) {
       console.error("Error posting note:", error);
@@ -104,7 +130,7 @@ const GlobalWall: React.FC<GlobalWallProps> = ({ user }) => {
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm("Hapus pesan ini dari tembok?")) {
+    if (confirm("Hapus postingan ini?")) {
       await deleteDoc(doc(db, "global_wall", id));
     }
   };
@@ -112,25 +138,13 @@ const GlobalWall: React.FC<GlobalWallProps> = ({ user }) => {
   const handleLike = async (id: string, currentLikedBy: string[] = []) => {
     const noteRef = doc(db, "global_wall", id);
 
-    // MODE ADMIN: Unlimited Like (Spam Like)
-    // Admin bisa klik terus menerus, angka akan terus bertambah.
     if (user.isAdmin) {
-      await updateDoc(noteRef, {
-        likes: increment(1)
-        // Admin tidak perlu dimasukkan ke likedBy agar bisa like lagi dan lagi
-        // Atau jika ingin heart-nya merah, bisa dimasukkan, tapi untuk 'unlimited' mending increment saja.
-      });
+      await updateDoc(noteRef, { likes: increment(1) });
       return;
     }
 
-    // MODE USER: One Time Like
-    // Cek apakah user sudah ada di list likedBy
-    if (currentLikedBy && currentLikedBy.includes(user.name)) {
-      // User sudah like, tidak lakukan apa-apa (atau bisa un-like jika mau toggle, tapi requestnya 'hanya bisa 1 kali')
-      return; 
-    }
+    if (currentLikedBy && currentLikedBy.includes(user.name)) return; 
 
-    // Jika belum like, tambahkan like dan masukkan nama ke array
     await updateDoc(noteRef, {
       likes: increment(1),
       likedBy: arrayUnion(user.name)
@@ -145,7 +159,7 @@ const GlobalWall: React.FC<GlobalWallProps> = ({ user }) => {
       id: crypto.randomUUID(),
       text: replyText,
       sender: user.name.split(' ')[0],
-      photo: user.photo || null, // Changed from undefined to null for Firestore compatibility
+      photo: user.photo || null,
       isAdmin: user.isAdmin,
       createdAt: new Date().toISOString()
     };
@@ -156,7 +170,7 @@ const GlobalWall: React.FC<GlobalWallProps> = ({ user }) => {
         replies: arrayUnion(newReply)
       });
       setReplyText('');
-      setActiveReplyId(null); // Close reply box after sending
+      setActiveReplyId(null);
     } catch (error) {
       console.error("Error sending reply:", error);
     } finally {
@@ -166,8 +180,7 @@ const GlobalWall: React.FC<GlobalWallProps> = ({ user }) => {
 
   return (
     <section className="min-h-screen pt-32 pb-20 px-4 md:px-6 bg-clean relative overflow-hidden">
-      {/* Background Decor Removed - Using Global .bg-clean */}
-
+      
       <div className="container mx-auto max-w-6xl relative z-10">
         <header className="text-center mb-12 animate-in slide-in-from-top duration-700">
           <div className="inline-flex items-center gap-3 glass px-6 py-2 rounded-full mb-6">
@@ -185,48 +198,80 @@ const GlobalWall: React.FC<GlobalWallProps> = ({ user }) => {
           <div className="absolute -inset-1 bg-gradient-to-r from-blue-200 via-purple-200 to-pink-200 rounded-[2.5rem] blur opacity-25 group-hover:opacity-50 transition duration-1000"></div>
           <form onSubmit={handlePost} className="glass rounded-[2rem] p-6 shadow-2xl relative bg-white/60 backdrop-blur-xl border-white/60">
             <div className="flex flex-col gap-4">
+              
+              {/* Image Preview Area */}
+              {selectedImage && (
+                <div className="relative w-full h-48 rounded-3xl overflow-hidden border border-slate-200 bg-slate-50 group/preview">
+                  <img src={selectedImage} alt="Preview" className="w-full h-full object-cover" />
+                  <button 
+                    type="button"
+                    onClick={removeSelectedImage}
+                    className="absolute top-3 right-3 p-2 bg-slate-900/80 text-white rounded-full hover:bg-red-500 transition-colors backdrop-blur-sm"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              )}
+
               <div className="relative">
                 <PenTool className="absolute left-4 top-4 text-slate-300" size={18} />
                 <textarea 
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
-                  placeholder="Tulis sesuatu di sini..."
+                  placeholder="Tulis sesuatu atau bagikan foto..."
                   className="w-full pl-12 pr-4 py-4 bg-white/50 border border-slate-100 rounded-3xl outline-none focus:ring-2 focus:ring-slate-900/10 font-handwriting text-2xl text-slate-700 placeholder:text-slate-300 min-h-[100px] resize-none"
-                  maxLength={200}
+                  maxLength={500}
                 />
-                <span className="absolute bottom-3 right-4 text-[10px] font-bold text-slate-300">{newMessage.length}/200</span>
               </div>
 
-              <div className="flex flex-wrap items-center justify-between gap-4">
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 mr-2 hidden sm:block">Pilih Warna:</span>
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
+                <div className="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-start">
+                  {/* Color Picker */}
                   <div className="flex gap-2">
                     {gradients.map((g) => (
                       <button
                         key={g.name}
                         type="button"
                         onClick={() => setSelectedColor(g.class)}
-                        className={`w-8 h-8 rounded-full shadow-sm transition-transform ${g.class} ${selectedColor === g.class ? 'ring-2 ring-slate-900 scale-110' : 'hover:scale-110 border border-black/5'}`}
+                        className={`w-6 h-6 rounded-full shadow-sm transition-transform ${g.class} ${selectedColor === g.class ? 'ring-2 ring-slate-900 scale-125' : 'hover:scale-110 border border-black/5'}`}
                         title={g.name}
                       />
                     ))}
                   </div>
+
+                  {/* Image Upload Button */}
+                  <div className="h-6 w-[1px] bg-slate-200 mx-2"></div>
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="flex items-center gap-2 text-slate-400 hover:text-slate-900 transition-colors"
+                    title="Upload Foto"
+                  >
+                    <ImageIcon size={20} />
+                  </button>
+                  <input 
+                    type="file" 
+                    ref={fileInputRef}
+                    className="hidden"
+                    accept="image/*"
+                    onChange={handleImageSelect}
+                  />
                 </div>
 
                 <button 
                   type="submit" 
-                  disabled={isSending || !newMessage.trim()}
-                  className="px-8 py-3 bg-slate-900 text-white rounded-full flex items-center justify-center gap-2 shadow-lg hover:bg-slate-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed group-submit text-[10px] font-black uppercase tracking-widest"
+                  disabled={isSending || (!newMessage.trim() && !selectedImage)}
+                  className="w-full sm:w-auto px-8 py-3 bg-slate-900 text-white rounded-full flex items-center justify-center gap-2 shadow-lg hover:bg-slate-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed group-submit text-[10px] font-black uppercase tracking-widest"
                 >
-                  {isSending ? <Sparkles className="animate-spin" size={14} /> : <Send size={14} />}
-                  <span>Kirim Pesan</span>
+                  {isSending ? <Loader2 className="animate-spin" size={14} /> : <Send size={14} />}
+                  <span>Posting</span>
                 </button>
               </div>
             </div>
           </form>
         </div>
 
-        {/* Masonry Grid Layout using CSS Columns */}
+        {/* Masonry Grid Layout */}
         <div className="columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6 pb-20 px-2">
           {notes.map((note, i) => {
             const userHasLiked = note.likedBy?.includes(user.name);
@@ -237,17 +282,17 @@ const GlobalWall: React.FC<GlobalWallProps> = ({ user }) => {
               className={`break-inside-avoid relative group animate-in slide-in-from-bottom duration-700`}
               style={{ animationDelay: `${i * 50}ms` }}
             >
-              <div className={`${note.color} p-6 rounded-[2.5rem] shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-white/50 relative overflow-hidden`}>
+              <div className={`${note.color} p-5 rounded-[2.5rem] shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-white/50 relative overflow-hidden flex flex-col`}>
                 
                 {/* Header: Photo & Name */}
-                <div className="flex justify-between items-start mb-4">
+                <div className="flex justify-between items-start mb-4 px-1">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-white bg-white/50 shadow-sm shrink-0">
+                    <div className="w-9 h-9 rounded-full overflow-hidden border-2 border-white bg-white/50 shadow-sm shrink-0">
                       {note.photo ? (
                         <img src={note.photo} alt={note.sender} className="w-full h-full object-cover" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-slate-400">
-                          <UserIcon size={16} />
+                          <UserIcon size={14} />
                         </div>
                       )}
                     </div>
@@ -267,20 +312,34 @@ const GlobalWall: React.FC<GlobalWallProps> = ({ user }) => {
                   {user.isAdmin && (
                     <button 
                       onClick={() => handleDelete(note.id)}
-                      className="w-8 h-8 bg-white/50 rounded-full flex items-center justify-center text-slate-400 hover:bg-red-500 hover:text-white transition-colors"
+                      className="w-7 h-7 bg-white/50 rounded-full flex items-center justify-center text-slate-400 hover:bg-red-500 hover:text-white transition-colors"
                     >
-                      <Trash2 size={14} />
+                      <Trash2 size={12} />
                     </button>
                   )}
                 </div>
 
-                {/* Content */}
-                <p className="font-handwriting text-2xl text-slate-800 leading-snug mb-6 break-words px-1">
-                  "{note.text}"
-                </p>
+                {/* Post Image (If Exists) */}
+                {note.postImage && (
+                  <div className="mb-4 rounded-3xl overflow-hidden border border-white/40 shadow-sm">
+                    <img 
+                      src={note.postImage} 
+                      alt="Post attachment" 
+                      className="w-full h-auto object-cover max-h-[400px]"
+                      loading="lazy"
+                    />
+                  </div>
+                )}
+
+                {/* Content Text */}
+                {note.text && (
+                  <p className="font-handwriting text-2xl text-slate-800 leading-snug mb-5 break-words px-1">
+                    "{note.text}"
+                  </p>
+                )}
 
                 {/* Actions */}
-                <div className="flex items-center justify-between border-t border-black/5 pt-4">
+                <div className="flex items-center justify-between border-t border-black/5 pt-3 mt-auto">
                    <button 
                     onClick={() => setActiveReplyId(activeReplyId === note.id ? null : note.id)}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-colors text-[10px] font-black uppercase tracking-widest ${activeReplyId === note.id ? 'bg-slate-900 text-white' : 'text-slate-500 hover:bg-black/5'}`}
@@ -339,7 +398,7 @@ const GlobalWall: React.FC<GlobalWallProps> = ({ user }) => {
                             type="text"
                             value={replyText}
                             onChange={(e) => setReplyText(e.target.value)}
-                            placeholder="Balas pesan ini..."
+                            placeholder="Balas..."
                             className="w-full pl-4 pr-10 py-2.5 bg-white/60 rounded-xl text-xs border border-transparent focus:border-slate-300 focus:bg-white outline-none transition-all placeholder:text-slate-400 text-slate-900"
                             autoFocus
                             onKeyDown={(e) => e.key === 'Enter' && handleReplySubmit(note.id)}
@@ -349,7 +408,7 @@ const GlobalWall: React.FC<GlobalWallProps> = ({ user }) => {
                             disabled={!replyText.trim() || isReplying}
                             className="absolute right-1 top-1 p-1.5 bg-slate-900 text-white rounded-lg hover:scale-105 transition-transform disabled:opacity-50"
                           >
-                             {isReplying ? <Sparkles size={12} className="animate-spin" /> : <Send size={12} />}
+                             {isReplying ? <Loader2 size={12} className="animate-spin" /> : <Send size={12} />}
                           </button>
                         </div>
                       </div>
