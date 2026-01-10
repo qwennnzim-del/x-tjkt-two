@@ -21,6 +21,27 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
   const SECRET_ADMIN_CODE = "TJKTAUTH0808";
 
+  const getDeviceDetails = () => {
+    const ua = navigator.userAgent;
+    let deviceType = "PC / Laptop";
+    let os = "Unknown OS";
+
+    // Simple detection logic
+    if (/Mobile|Android|iP(hone|od)|IEMobile|BlackBerry|Kindle|Silk-Accelerated/.test(ua)) {
+      deviceType = "HP / Mobile";
+    } else if (/iPad|Tablet/i.test(ua)) {
+      deviceType = "Tablet";
+    }
+
+    if (ua.indexOf("Win") !== -1) os = "Windows";
+    else if (ua.indexOf("Mac") !== -1) os = "MacOS";
+    else if (ua.indexOf("Android") !== -1) os = "Android";
+    else if (ua.indexOf("Linux") !== -1) os = "Linux";
+    else if (ua.indexOf("like Mac") !== -1) os = "iOS";
+
+    return { type: deviceType, os: os };
+  };
+
   const handleSlide = (e: React.MouseEvent | React.TouchEvent) => {
     if (slideComplete || !name || !classMajor) return;
     
@@ -66,14 +87,18 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
   const triggerLogin = async () => {
     const isAdmin = adminCode === SECRET_ADMIN_CODE;
+    const deviceInfo = getDeviceDetails();
     
-    // Simpan Log Login ke Firestore untuk dipantau Admin
+    // Simpan Log Login ke Firestore dengan Detail Perangkat
     try {
       await addDoc(collection(db, "user_logins"), {
         name,
         classMajor,
         timestamp: serverTimestamp(),
-        isAdmin: isAdmin
+        isAdmin: isAdmin,
+        deviceType: deviceInfo.type,
+        deviceOS: deviceInfo.os,
+        fullUserAgent: navigator.userAgent
       });
     } catch (err) {
       console.error("Failed to log login:", err);
