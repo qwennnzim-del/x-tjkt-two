@@ -118,11 +118,12 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, user }) =>
   };
 
   const navLinks = [
-    { name: 'Home Base', id: 'home' },
-    { name: 'Vibes Kita', id: 'about' },
-    { name: 'The Wall', id: 'wall' }, // New Feature
-    { name: 'The Squad', id: 'members' },
-    { name: 'Jadwal Tempur', id: 'schedule' },
+    { name: 'Home', id: 'home' },
+    { name: 'Vibes', id: 'about' },
+    { name: 'Wall', id: 'wall' },
+    { name: 'Vote', id: 'voting' }, // New Feature
+    { name: 'Squad', id: 'members' },
+    { name: 'Jadwal', id: 'schedule' },
   ];
 
   const handleNavClick = (id: string) => {
