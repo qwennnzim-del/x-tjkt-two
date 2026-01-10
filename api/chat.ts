@@ -1,24 +1,25 @@
 
 import { GoogleGenAI } from "@google/genai";
 
-export const config = {
-  runtime: 'edge',
-};
+// Kita menghapus 'runtime: edge' agar berjalan di Node.js Serverless Function penuh.
+// Ini memperbaiki error "unsupported modules" pada library @google/genai.
 
-export default async function handler(req: Request) {
+export default async function handler(req, res) {
+  // Pastikan method adalah POST
   if (req.method !== 'POST') {
-    return new Response('Method Not Allowed', { status: 405 });
+    return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
   try {
-    const { message, history } = await req.json();
+    // Di Vercel Node.js runtime, req.body sudah otomatis diparsing jika header JSON dikirim
+    const { message, history } = req.body;
 
     // Mengambil API Key dari Environment Variable Server (Aman)
     const apiKey = process.env.API_KEY;
     
     if (!apiKey) {
       console.error("API_KEY is missing in Vercel Environment Variables");
-      return new Response(JSON.stringify({ error: 'Server Config Error: API Key not found' }), { status: 500 });
+      return res.status(500).json({ error: 'Server Config Error: API Key not found' });
     }
 
     const ai = new GoogleGenAI({ apiKey });
@@ -57,7 +58,7 @@ export default async function handler(req: Request) {
         temperature: 0.7, 
       },
       contents: [
-        ...history.map((msg: any) => ({
+        ...history.map((msg) => ({
           role: msg.role === 'user' ? 'user' : 'model',
           parts: [{ text: msg.text }]
         })),
@@ -70,12 +71,10 @@ export default async function handler(req: Request) {
 
     const text = response.text;
 
-    return new Response(JSON.stringify({ text }), {
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return res.status(200).json({ text });
 
   } catch (error) {
     console.error('Gemini API Error:', error);
-    return new Response(JSON.stringify({ error: 'Gagal menghubungi Zent AI' }), { status: 500 });
+    return res.status(500).json({ error: 'Gagal menghubungi Zent AI (Server Error)' });
   }
 }
