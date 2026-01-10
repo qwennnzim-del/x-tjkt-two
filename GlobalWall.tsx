@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Send, Trash2, Heart, Sparkles, MessageSquare, StickyNote, PenTool } from 'lucide-react';
+import { Send, Trash2, Heart, Sparkles, MessageSquare, StickyNote, PenTool, CheckCircle2 } from 'lucide-react';
 import { db } from './firebase';
 import { 
   collection, 
@@ -26,6 +26,7 @@ interface Note {
   id: string;
   text: string;
   sender: string;
+  isAdmin?: boolean; // Menambahkan field optional untuk status admin
   color: string;
   likes: number;
   createdAt: any;
@@ -69,9 +70,13 @@ const GlobalWall: React.FC<GlobalWallProps> = ({ user }) => {
 
     setIsSending(true);
     try {
+      // Jika mode anonim aktif, jangan kirim status isAdmin agar identitas tetap terjaga
+      const adminStatus = isAnonymous ? false : user.isAdmin;
+
       await addDoc(collection(db, "global_wall"), {
         text: newMessage,
         sender: isAnonymous ? "Secret Admirer" : user.name.split(' ')[0],
+        isAdmin: adminStatus, 
         color: selectedColor,
         mood: selectedMood,
         likes: 0,
@@ -192,9 +197,15 @@ const GlobalWall: React.FC<GlobalWallProps> = ({ user }) => {
                 <div className="flex justify-between items-start mb-3 mt-2">
                   <div className="flex items-center gap-2">
                     <span className="text-2xl filter drop-shadow-sm">{note.mood}</span>
-                    <span className="text-[10px] font-black text-slate-900/60 uppercase tracking-widest">
-                      {note.sender}
-                    </span>
+                    <div className="flex items-center gap-1">
+                      <span className="text-[10px] font-black text-slate-900/60 uppercase tracking-widest">
+                        {note.sender}
+                      </span>
+                      {/* Lencana Admin */}
+                      {note.isAdmin && (
+                        <CheckCircle2 size={14} className="text-blue-500 fill-blue-500/10" />
+                      )}
+                    </div>
                   </div>
                   {user.isAdmin && (
                     <button 
