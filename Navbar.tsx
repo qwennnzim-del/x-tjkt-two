@@ -27,9 +27,11 @@ interface LoginActivity {
   name: string;
   classMajor: string;
   timestamp: any;
+  lastActive?: any; // Field baru untuk heartbeat
   isAdmin: boolean;
   deviceType?: string;
   deviceOS?: string;
+  photo?: string;
 }
 
 const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, user }) => {
@@ -50,13 +52,14 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, user }) =>
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Real-time Notification Listener for Admin
+  // Real-time Notification Listener for Admin (Updated for Online Status)
   useEffect(() => {
     if (!user.isAdmin) return;
 
+    // Urutkan berdasarkan lastActive jika ada, atau timestamp login
     const q = query(
       collection(db, "user_logins"),
-      orderBy("timestamp", "desc"),
+      orderBy("lastActive", "desc"), 
       limit(20) 
     );
 
@@ -66,6 +69,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, user }) =>
         ...doc.data()
       })) as LoginActivity[];
       
+      // Jika data berubah drastis (misal ada user baru login di paling atas)
       if (logins.length > 0 && newLogins.length > 0 && newLogins[0].id !== logins[0].id) {
         setHasNew(true);
       }
@@ -118,7 +122,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, user }) =>
   const navLinks = [
     { name: 'Home', id: 'home' },
     { name: 'Vibes', id: 'about' },
-    { name: 'Cinema', id: 'cinema' }, // NEW: Menu Cinema
+    { name: 'Cinema', id: 'cinema' },
     { name: 'Wall', id: 'wall' },
     { name: 'Vote', id: 'voting' },
     { name: 'Squad', id: 'members' },
@@ -136,10 +140,11 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, user }) =>
     window.location.reload();
   };
 
-  const formatDetailedTime = (timestamp: any) => {
-    if (!timestamp) return 'Just Now';
-    const date = new Date(timestamp.seconds * 1000);
-    return date.toLocaleTimeString('id-ID', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  const checkIsOnline = (lastActive: any) => {
+     if (!lastActive) return false;
+     const now = Date.now();
+     const diff = now - (lastActive.seconds * 1000);
+     return diff < 2 * 60 * 1000; // Online jika aktif dalam 2 menit terakhir
   };
 
   return (
@@ -190,7 +195,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, user }) =>
                           <div className="p-1.5 bg-blue-50 text-blue-600 rounded-lg">
                             <ShieldAlert size={14} />
                           </div>
-                          <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-900">Live Traffic</h4>
+                          <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-900">User Activity</h4>
                         </div>
                         
                         {logins.length > 0 && (
@@ -206,22 +211,31 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, user }) =>
 
                       <div className="space-y-3 max-h-[400px] overflow-y-auto no-scrollbar">
                         {logins.length > 0 ? (
-                          logins.map((login) => (
+                          logins.map((login) => {
+                             const isOnline = checkIsOnline(login.lastActive || login.timestamp);
+                             
+                             return (
                             <div key={login.id} className="flex gap-4 p-3.5 rounded-3xl hover:bg-white transition-all border border-transparent hover:border-slate-50 group/item shadow-sm hover:shadow-md">
-                              <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 transition-transform group-hover/item:-rotate-3 ${login.isAdmin ? 'bg-blue-100 text-blue-600' : 'bg-slate-50 text-slate-300'}`}>
-                                <UserIcon size={16} />
+                              <div className={`w-10 h-10 rounded-full overflow-hidden flex items-center justify-center shrink-0 border-2 ${login.isAdmin ? 'border-red-400' : 'border-slate-100'}`}>
+                                {login.photo ? (
+                                   <img src={login.photo} alt="User" className="w-full h-full object-cover" />
+                                ) : (
+                                   <div className={`w-full h-full flex items-center justify-center ${login.isAdmin ? 'bg-red-50 text-red-500' : 'bg-slate-50 text-slate-400'}`}>
+                                      <UserIcon size={16} />
+                                   </div>
+                                )}
                               </div>
                               <div className="flex-grow">
                                 <div className="flex items-center justify-between">
                                   <div className="flex items-center gap-1.5">
-                                    <p className="text-xs font-black text-slate-900 uppercase tracking-tight">
+                                    <p className={`text-xs font-black uppercase tracking-tight ${login.isAdmin ? 'text-red-600' : 'text-slate-900'}`}>
                                       {login.name.split(' ')[0]}
                                     </p>
-                                    {login.isAdmin && <CheckCircle2 size={12} className="text-blue-500" />}
+                                    {login.isAdmin && <CheckCircle2 size={12} className="text-red-500" />}
                                   </div>
-                                  <div className="flex items-center gap-1 text-[9px] font-black text-slate-400 bg-slate-50 px-2 py-0.5 rounded-full">
-                                    <Clock size={10} />
-                                    {formatDetailedTime(login.timestamp)}
+                                  <div className={`flex items-center gap-1 text-[9px] font-black px-2 py-0.5 rounded-full ${isOnline ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-50 text-slate-400'}`}>
+                                    <div className={`w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}`}></div>
+                                    {isOnline ? 'ONLINE' : 'OFFLINE'}
                                   </div>
                                 </div>
                                 
@@ -234,14 +248,10 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, user }) =>
                                     {login.deviceType?.includes('HP') ? <Smartphone size={10} /> : <Monitor size={10} />}
                                     <span>{login.deviceType || 'Unknown Device'}</span>
                                   </div>
-                                  <div className="w-1 h-1 rounded-full bg-slate-200"></div>
-                                  <span className="text-[9px] text-slate-400 uppercase tracking-tighter">
-                                    {login.deviceOS || 'Unknown OS'}
-                                  </span>
                                 </div>
                               </div>
                             </div>
-                          ))
+                          )})
                         ) : (
                           <div className="py-12 text-center">
                             <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">

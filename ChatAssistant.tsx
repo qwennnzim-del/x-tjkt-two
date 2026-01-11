@@ -1,6 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { MessageCircle, X, Send, Bot, Loader2, Sparkles, User, Cpu } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 
 interface Message {
   id: string;
@@ -14,7 +15,7 @@ const ChatAssistant = () => {
     {
       id: 'welcome',
       role: 'ai',
-      text: 'System Online. Halo! Saya Hzell Virtual 🤖. Asisten pribadi buatan Hezell untuk X TJKT TWO. Mau tanya soal struktur kelas atau teknis jaringan?'
+      text: 'System Online. Halo! Saya **Hzell Virtual** 🤖. Asisten pribadi buatan *Hezell* untuk **X TJKT TWO**. Mau tanya soal struktur kelas atau teknis jaringan?'
     }
   ]);
   const [input, setInput] = useState('');
@@ -132,13 +133,19 @@ const ChatAssistant = () => {
                 )}
                 
                 <div 
-                  className={`max-w-[80%] p-3.5 rounded-2xl text-sm leading-relaxed shadow-sm ${
+                  className={`max-w-[85%] p-3.5 rounded-2xl text-sm leading-relaxed shadow-sm ${
                     msg.role === 'user' 
                       ? 'bg-slate-900 text-white rounded-br-none' 
                       : 'bg-white text-slate-800 rounded-bl-none border border-white/50'
                   }`}
                 >
-                  {msg.text}
+                  {msg.role === 'ai' ? (
+                     <div className="prose prose-sm prose-slate max-w-none prose-p:leading-tight prose-a:text-blue-600 prose-headings:text-slate-900 prose-strong:font-black">
+                        <ReactMarkdown>{msg.text}</ReactMarkdown>
+                     </div>
+                  ) : (
+                    msg.text
+                  )}
                 </div>
 
                 {msg.role === 'user' && (

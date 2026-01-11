@@ -47,31 +47,49 @@ const About: React.FC<AboutProps> = ({ isAdmin }) => {
   const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (!isAdmin) return;
     const files = event.target.files;
+    
     if (files && files.length > 0) {
-      setIsUploading(true);
-      try {
-        const file = files[0];
-        if (file.size > 1024 * 1024) {
-          alert("Ukuran foto terlalu besar! Harap kompres di bawah 1MB.");
-          setIsUploading(false);
-          return;
-        }
+      if (files.length > 5) {
+        alert("Maksimal upload 5 foto sekaligus ya!");
+        return;
+      }
 
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = async () => {
-          const base64String = reader.result as string;
-          await addDoc(collection(db, "moments"), {
-            type: 'image',
-            url: base64String,
-            createdAt: serverTimestamp()
-          });
-          setIsUploading(false);
-        };
+      setIsUploading(true);
+      const fileArray = Array.from(files);
+
+      try {
+        // Proses upload satu per satu secara paralel (Promise.all)
+        await Promise.all(fileArray.map((file: File) => {
+           return new Promise<void>((resolve, reject) => {
+              if (file.size > 1024 * 1024) {
+                 console.warn(`File ${file.name} terlalu besar, dilewati.`);
+                 resolve(); // Resolve agar tidak membatalkan yang lain
+                 return;
+              }
+
+              const reader = new FileReader();
+              reader.readAsDataURL(file);
+              reader.onload = async () => {
+                const base64String = reader.result as string;
+                await addDoc(collection(db, "moments"), {
+                  type: 'image',
+                  url: base64String,
+                  createdAt: serverTimestamp()
+                });
+                resolve();
+              };
+              reader.onerror = reject;
+           });
+        }));
+        
+        // Reset Input
+        if (fileInputRef.current) fileInputRef.current.value = '';
+
       } catch (error) {
         console.error(error);
+        alert("Terjadi kesalahan saat mengupload beberapa foto.");
+      } finally {
         setIsUploading(false);
-        alert("Gagal upload foto.");
       }
     }
   };
@@ -110,9 +128,16 @@ const About: React.FC<AboutProps> = ({ isAdmin }) => {
                 className="group relative flex items-center justify-center gap-3 px-8 py-4 bg-slate-900 text-white rounded-2xl hover:bg-slate-800 transition-all shadow-xl disabled:opacity-50 text-[10px] font-black uppercase tracking-widest overflow-hidden"
               >
                 {isUploading ? <Loader2 size={14} className="animate-spin" /> : <Camera size={14} />}
-                <span>Add Photo</span>
+                <span>Add Photos (Max 5)</span>
               </button>
-              <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handlePhotoUpload} />
+              <input 
+                type="file" 
+                ref={fileInputRef} 
+                className="hidden" 
+                accept="image/*" 
+                multiple // ALLOW MULTIPLE
+                onChange={handlePhotoUpload} 
+              />
             </div>
           )}
         </header>

@@ -1,11 +1,11 @@
 
 import React, { useState, useRef } from 'react';
-import { User, School, ArrowRight, CheckCircle2, ShieldCheck, Lock } from 'lucide-react';
+import { User, School, ArrowRight, CheckCircle2, ShieldCheck, Lock, Camera, ImagePlus } from 'lucide-react';
 import { db } from './firebase';
-import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+import { collection, addDoc, serverTimestamp, setDoc, doc } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
 interface LoginProps {
-  onLogin: (userData: { name: string; classMajor: string; isAdmin: boolean }) => void;
+  onLogin: (userData: { name: string; classMajor: string; isAdmin: boolean; photo?: string }) => void;
 }
 
 const Login: React.FC<LoginProps> = ({ onLogin }) => {
@@ -15,9 +15,11 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const [showAdminField, setShowAdminField] = useState(false);
   const [slideComplete, setSlideComplete] = useState(false);
   const [showNotification, setShowNotification] = useState(false);
+  const [photo, setPhoto] = useState<string | null>(null);
   
   const sliderRef = useRef<HTMLDivElement>(null);
   const handleRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const SECRET_ADMIN_CODE = "TJKTAUTH0808";
 
@@ -26,7 +28,6 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     let deviceType = "PC / Laptop";
     let os = "Unknown OS";
 
-    // Simple detection logic
     if (/Mobile|Android|iP(hone|od)|IEMobile|BlackBerry|Kindle|Silk-Accelerated/.test(ua)) {
       deviceType = "HP / Mobile";
     } else if (/iPad|Tablet/i.test(ua)) {
@@ -40,6 +41,21 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     else if (ua.indexOf("like Mac") !== -1) os = "iOS";
 
     return { type: deviceType, os: os };
+  };
+
+  const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        alert("Ukuran foto maksimal 2MB ya!");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhoto(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleSlide = (e: React.MouseEvent | React.TouchEvent) => {
@@ -89,24 +105,32 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     const isAdmin = adminCode === SECRET_ADMIN_CODE;
     const deviceInfo = getDeviceDetails();
     
-    // Simpan Log Login ke Firestore dengan Detail Perangkat
     try {
-      await addDoc(collection(db, "user_logins"), {
+      // 1. Simpan Data Login untuk History & Notifikasi
+      // Menggunakan ID yang unik berdasarkan nama agar kita bisa update status 'online' nya nanti
+      const userId = name.toLowerCase().replace(/\s+/g, '_');
+      
+      await setDoc(doc(db, "user_logins", userId), {
         name,
         classMajor,
         timestamp: serverTimestamp(),
+        lastActive: serverTimestamp(), // Untuk fitur Online/Offline
         isAdmin: isAdmin,
+        photo: photo || null, // Simpan foto di data login juga
         deviceType: deviceInfo.type,
         deviceOS: deviceInfo.os,
-        fullUserAgent: navigator.userAgent
+        fullUserAgent: navigator.userAgent,
+        status: 'online'
       });
+
     } catch (err) {
       console.error("Failed to log login:", err);
     }
 
     setShowNotification(true);
     setTimeout(() => {
-      onLogin({ name, classMajor, isAdmin });
+      // Kirim data lengkap termasuk foto ke App
+      onLogin({ name, classMajor, isAdmin, photo: photo || undefined });
     }, 2000);
   };
 
@@ -119,11 +143,36 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
       <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-50 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-pulse delay-700"></div>
 
       {/* Login Card */}
-      <div className="w-full max-w-md glass rounded-[3rem] p-10 shadow-2xl relative animate-in fade-in zoom-in duration-700">
-        <div className="text-center mb-10">
-          <span className="font-handwriting text-3xl text-slate-400 block mb-2">Welcome Home</span>
-          <h1 className="font-artist text-4xl font-bold text-slate-900 tracking-tight">X TJKT TWO</h1>
-          <div className="w-12 h-1 bg-slate-900 mx-auto mt-4"></div>
+      <div className="w-full max-w-md glass rounded-[3rem] p-8 md:p-10 shadow-2xl relative animate-in fade-in zoom-in duration-700 max-h-[90vh] overflow-y-auto no-scrollbar">
+        <div className="text-center mb-6">
+          <span className="font-handwriting text-3xl text-slate-400 block mb-1">Setup Your Profile</span>
+          <h1 className="font-artist text-3xl font-bold text-slate-900 tracking-tight">X TJKT TWO</h1>
+        </div>
+
+        {/* PHOTO UPLOAD CIRCLE */}
+        <div className="flex justify-center mb-8">
+          <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+            <div className={`w-32 h-32 rounded-full overflow-hidden border-4 shadow-xl transition-all duration-300 ${photo ? 'border-slate-900' : 'border-dashed border-slate-300 bg-slate-50'}`}>
+              {photo ? (
+                <img src={photo} alt="Preview" className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 gap-2">
+                  <ImagePlus size={32} />
+                  <span className="text-[9px] font-black uppercase tracking-widest">Upload Foto</span>
+                </div>
+              )}
+            </div>
+            <div className="absolute bottom-0 right-0 p-2 bg-slate-900 text-white rounded-full shadow-lg group-hover:scale-110 transition-transform">
+              <Camera size={16} />
+            </div>
+            <input 
+              type="file" 
+              ref={fileInputRef} 
+              className="hidden" 
+              accept="image/*" 
+              onChange={handlePhotoSelect} 
+            />
+          </div>
         </div>
 
         <div className="space-y-4">
@@ -142,7 +191,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
             <School className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-slate-900 transition-colors" size={20} />
             <input 
               type="text" 
-              placeholder="Kelas & Jurusan (e.g. X TJKT 2)" 
+              placeholder="Kelas (e.g. X TJKT 2)" 
               value={classMajor}
               onChange={(e) => setClassMajor(e.target.value)}
               className="w-full pl-12 pr-4 py-4 bg-white/60 border border-slate-200/50 rounded-2xl outline-none focus:ring-2 focus:ring-slate-900/10 focus:bg-white transition-all font-medium text-slate-900 placeholder:text-slate-400"
@@ -175,13 +224,13 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
         {/* Custom Slider Confirmation */}
         <div className="mt-8">
-          <p className="text-center text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">
-            {!isFormValid ? 'Isi data dulu ya' : slideComplete ? (adminCode === SECRET_ADMIN_CODE ? 'Admin Access Granted!' : 'Akun Berhasil Dibuat!') : 'Slide ke kanan buat masuk'}
+          <p className="text-center text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-4">
+            {!isFormValid ? 'Lengkapi Nama & Kelas' : slideComplete ? (adminCode === SECRET_ADMIN_CODE ? 'Admin Access Granted!' : 'Profile Ready!') : 'Geser untuk Gabung'}
           </p>
           
           <div 
             ref={sliderRef}
-            className={`h-16 w-full rounded-full p-1 relative transition-all duration-500 overflow-hidden ${!isFormValid ? 'bg-slate-100 opacity-50 cursor-not-allowed' : 'bg-slate-100 cursor-pointer shadow-inner'}`}
+            className={`h-16 w-full rounded-full p-1 relative transition-all duration-500 overflow-hidden ${!isFormValid ? 'bg-slate-100 opacity-50 cursor-not-allowed' : 'bg-slate-200 cursor-pointer shadow-inner'}`}
           >
             <div 
               ref={handleRef}
@@ -192,28 +241,24 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
               {slideComplete ? <CheckCircle2 size={24} /> : <ArrowRight size={24} />}
             </div>
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-               <span className="text-xs font-bold text-slate-400 tracking-[0.2em] uppercase transition-opacity duration-300" style={{ opacity: slideComplete ? 0 : 1 }}>Slide to Connect</span>
+               <span className="text-xs font-bold text-slate-500 tracking-[0.2em] uppercase transition-opacity duration-300" style={{ opacity: slideComplete ? 0 : 1 }}>Slide to Join</span>
             </div>
           </div>
         </div>
-
-        <p className="mt-8 text-center text-[10px] text-slate-400 uppercase tracking-widest font-bold">
-          X TJKT TWO — Professional Portfolio System
-        </p>
       </div>
 
       {/* Success Notification */}
       {showNotification && (
-        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 glass px-8 py-4 rounded-full flex items-center gap-4 animate-in slide-in-from-bottom-10 fade-in duration-500 border-emerald-100 z-[110]">
-          <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center text-white">
-            <CheckCircle2 size={18} />
+        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-8 py-4 rounded-full flex items-center gap-4 animate-in slide-in-from-bottom-10 fade-in duration-500 shadow-2xl z-[110]">
+          <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-white">
+             {photo ? <img src={photo} alt="Me" className="w-full h-full object-cover" /> : <User size={20} className="m-auto mt-2" />}
           </div>
           <div>
-            <p className="font-bold text-slate-900 text-sm">
-              {adminCode === SECRET_ADMIN_CODE ? 'Admin Login Sukses!' : 'Berhasil!'}
+            <p className="font-bold text-sm">
+              {adminCode === SECRET_ADMIN_CODE ? 'Welcome, Admin!' : `Halo, ${name.split(' ')[0]}!`}
             </p>
-            <p className="text-xs text-slate-500">
-              {adminCode === SECRET_ADMIN_CODE ? 'Mode administrator aktif.' : `Akun kamu sudah aktif, ${name.split(' ')[0]}.`}
+            <p className="text-[10px] text-slate-400 uppercase tracking-wider">
+              Profile Setup Complete
             </p>
           </div>
         </div>

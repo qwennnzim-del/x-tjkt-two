@@ -15,6 +15,8 @@ import GlobalWall from './GlobalWall';
 import Polling from './Polling';
 import NotificationSystem from './NotificationSystem';
 import ChatAssistant from './ChatAssistant'; 
+import { db } from './firebase';
+import { doc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
 // --- FEATURE TOUR COMPONENT (ONBOARDING) ---
 interface FeatureTourProps {
@@ -142,6 +144,34 @@ const App = () => {
 
     setLoading(false);
   }, []);
+
+  // --- ONLINE STATUS HEARTBEAT ---
+  useEffect(() => {
+    if (!user) return;
+
+    // Fungsi update status 'online' ke Firestore
+    const heartbeat = async () => {
+      try {
+        const userId = user.name.toLowerCase().replace(/\s+/g, '_');
+        const userRef = doc(db, "user_logins", userId);
+        // Kita update lastActive agar navbar bisa mendeteksi user ini online
+        await updateDoc(userRef, {
+          lastActive: serverTimestamp(),
+          status: 'online'
+        });
+      } catch (e) {
+        console.error("Heartbeat error", e);
+      }
+    };
+
+    // Panggil sekali saat mount/login
+    heartbeat();
+
+    // Panggil setiap 1 menit
+    const interval = setInterval(heartbeat, 60000);
+
+    return () => clearInterval(interval);
+  }, [user]);
 
   const handleLogin = (userData: UserData) => {
     setUser(userData);
