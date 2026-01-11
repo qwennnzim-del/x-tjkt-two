@@ -81,9 +81,13 @@ const Home: React.FC<HomeProps> = ({ onExplore, user }) => {
           <h1 className="font-artist text-6xl md:text-9xl font-bold text-slate-900 mb-4 tracking-tighter animate-in fade-in slide-in-from-bottom duration-1000 leading-[0.9]">
             X TJKT TWO
           </h1>
-          <p className="max-w-xl mx-auto text-[10px] sm:text-sm text-slate-500 mb-10 leading-relaxed font-black uppercase tracking-[0.4em] animate-in fade-in slide-in-from-bottom duration-1000 delay-200">
+          <p className="max-w-xl mx-auto text-[10px] sm:text-sm text-slate-500 mb-4 leading-relaxed font-black uppercase tracking-[0.4em] animate-in fade-in slide-in-from-bottom duration-1000 delay-200">
             Professional Network & <br className="sm:hidden"/> Telecom Engineering Squad
           </p>
+          <p className="max-w-xl mx-auto text-[10px] sm:text-xs text-slate-400 mb-10 leading-relaxed font-black uppercase tracking-[0.6em] animate-in fade-in slide-in-from-bottom duration-1000 delay-200">
+             HEZELL
+          </p>
+
           <div className="flex flex-wrap gap-3 justify-center animate-in fade-in slide-in-from-bottom duration-1000 delay-300">
             <button onClick={() => onExplore('about')} className="px-10 py-5 bg-slate-900 text-white rounded-full hover:bg-slate-800 transition-all shadow-2xl flex items-center justify-center gap-3 group text-xs font-bold uppercase tracking-widest">
               Vibes Kita <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />

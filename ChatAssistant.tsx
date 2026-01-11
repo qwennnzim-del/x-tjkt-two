@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageCircle, X, Send, Bot, Loader2, Sparkles, User } from 'lucide-react';
+import { MessageCircle, X, Send, Bot, Loader2, Sparkles, User, Cpu } from 'lucide-react';
 
 interface Message {
   id: string;
@@ -14,7 +14,7 @@ const ChatAssistant = () => {
     {
       id: 'welcome',
       role: 'ai',
-      text: 'Halo! Aku Zent AI 👋. Ada yang bisa aku bantu seputar X TJKT TWO? Atau mau ngobrol santai aja?'
+      text: 'System Online. Halo! Saya Hzell Virtual 🤖. Asisten pribadi buatan Hezell untuk X TJKT TWO. Mau tanya soal struktur kelas atau teknis jaringan?'
     }
   ]);
   const [input, setInput] = useState('');
@@ -44,7 +44,6 @@ const ChatAssistant = () => {
 
     try {
       // Siapkan history untuk dikirim ke API (ambil 10 pesan terakhir agar hemat token context)
-      // Kita format sesuai kebutuhan backend sederhana kita
       const history = messages.slice(-10).map(m => ({
         role: m.role === 'user' ? 'user' : 'model',
         text: m.text
@@ -69,7 +68,7 @@ const ChatAssistant = () => {
       const aiMsg: Message = {
         id: (Date.now() + 1).toString(),
         role: 'ai',
-        text: data.text || "Maaf, sinyal lagi RTO nih. Coba lagi ya!"
+        text: data.text || "Sistem mengalami gangguan. Coba lagi nanti."
       };
 
       setMessages(prev => [...prev, aiMsg]);
@@ -78,7 +77,7 @@ const ChatAssistant = () => {
       const errorMsg: Message = {
         id: (Date.now() + 1).toString(),
         role: 'ai',
-        text: "Waduh, koneksi ke server Zent terputus. Pastikan API Key sudah disetting di Vercel Variables ya!"
+        text: "Koneksi ke server Hzell terputus. Pastikan konfigurasi API sudah benar."
       };
       setMessages(prev => [...prev, errorMsg]);
     } finally {
@@ -103,15 +102,15 @@ const ChatAssistant = () => {
         <div className="fixed bottom-24 right-6 w-[90vw] md:w-[400px] h-[500px] max-h-[70vh] glass rounded-[2rem] shadow-3xl border-white/60 z-[9990] flex flex-col overflow-hidden animate-in slide-in-from-bottom-10 fade-in duration-300">
           
           {/* Header */}
-          <div className="bg-white/50 p-4 border-b border-white/40 flex items-center gap-3 backdrop-blur-md">
-            <div className="w-10 h-10 bg-gradient-to-tr from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-white shadow-lg">
-              <Bot size={20} />
+          <div className="bg-white/80 p-4 border-b border-white/40 flex items-center gap-3 backdrop-blur-md">
+            <div className="w-10 h-10 bg-gradient-to-tr from-indigo-500 to-cyan-500 rounded-xl flex items-center justify-center text-white shadow-lg">
+              <Cpu size={20} />
             </div>
             <div>
-              <h3 className="font-artist text-lg font-black text-slate-900 leading-none">Zent AI</h3>
+              <h3 className="font-artist text-lg font-black text-slate-900 leading-none">Hzell Virtual</h3>
               <div className="flex items-center gap-1.5 mt-1">
                 <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
-                <span className="text-[9px] font-bold uppercase tracking-widest text-slate-500">Online • Gemini 2.5 Flash</span>
+                <span className="text-[9px] font-bold uppercase tracking-widest text-slate-500">AI by Hezell</span>
               </div>
             </div>
           </div>
@@ -119,7 +118,7 @@ const ChatAssistant = () => {
           {/* Messages Area */}
           <div 
             ref={scrollRef}
-            className="flex-grow overflow-y-auto p-4 space-y-4 bg-white/20"
+            className="flex-grow overflow-y-auto p-4 space-y-4 bg-white/40"
           >
             {messages.map((msg) => (
               <div 
@@ -127,8 +126,8 @@ const ChatAssistant = () => {
                 className={`flex gap-3 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 {msg.role === 'ai' && (
-                  <div className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center shrink-0 mt-1">
-                    <Sparkles size={12} />
+                  <div className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center shrink-0 mt-1 shadow-md">
+                    <Bot size={14} />
                   </div>
                 )}
                 
@@ -153,25 +152,25 @@ const ChatAssistant = () => {
             {isLoading && (
               <div className="flex gap-3 justify-start animate-pulse">
                 <div className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center shrink-0">
-                  <Sparkles size={12} />
+                  <Bot size={14} />
                 </div>
                 <div className="bg-white/50 p-3 rounded-2xl rounded-bl-none flex items-center gap-2 text-xs font-bold text-slate-500">
                   <Loader2 size={12} className="animate-spin" />
-                  Zent sedang mengetik...
+                  Hzell sedang memproses...
                 </div>
               </div>
             )}
           </div>
 
           {/* Input Area */}
-          <div className="p-4 bg-white/60 border-t border-white/40">
+          <div className="p-4 bg-white/80 border-t border-white/40">
             <form onSubmit={handleSend} className="relative flex items-center gap-2">
               <input
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Tanya sesuatu ke Zent..."
-                className="w-full pl-4 pr-12 py-3.5 bg-white border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-slate-900/10 text-sm font-medium placeholder:text-slate-400 shadow-sm"
+                placeholder="Tanya Hzell..."
+                className="w-full pl-4 pr-12 py-3.5 bg-white border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-slate-900/10 text-sm font-medium text-slate-900 placeholder:text-slate-400 shadow-sm"
               />
               <button
                 type="submit"

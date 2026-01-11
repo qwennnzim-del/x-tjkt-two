@@ -162,7 +162,7 @@ const Cinema: React.FC<CinemaProps> = ({ isAdmin }) => {
               BIOSKOP <br/>
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-purple-600">TJKT TWO</span>
             </h2>
-            <p className="text-slate-400 font-bold text-[10px] uppercase tracking-[0.4em]">Streaming Dokumentasi & Karya</p>
+            <p className="text-slate-400 font-bold text-[10px] uppercase tracking-[0.4em]">Streaming Film Horror, Komedi & Romantis</p>
           </div>
           
           {isAdmin && (
