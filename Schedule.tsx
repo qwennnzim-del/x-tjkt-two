@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Calendar, Clock, BookOpen, GraduationCap, Library, Shirt, Users, UserCheck } from 'lucide-react';
+import { Calendar, Clock, BookOpen, GraduationCap, Library, Shirt, Users, UserCheck, Briefcase, BookMarked } from 'lucide-react';
 
 const Schedule = () => {
   const [activeDay, setActiveDay] = useState(0);
@@ -11,7 +11,8 @@ const Schedule = () => {
     { 
       day: "Senin", 
       uniform: "Baju Putih Abu (Atribut Lengkap)",
-      subjects: [
+      // Jadwal Lama (Produktif)
+      productiveSubjects: [
         { name: "UPACARA BENDERA", time: "07.30 – 08.05", teacher: "Sekolah" },
         { name: "MATA PELAJARAN DPK", time: "08.05 – 09.50", teacher: "Ibu Resita Agustin" },
         { name: "ISTIRAHAT", time: "09.50 – 10.10", teacher: "-" },
@@ -19,12 +20,21 @@ const Schedule = () => {
         { name: "ISTIRAHAT", time: "11.55 – 12.25", teacher: "-" },
         { name: "MATA PELAJARAN IPAS", time: "12.25 – 14.45", teacher: "Ibu Dina Ika Agustiani" }
       ],
-      picket: ["Alham Haikal", "Aurel Agri", "Bibit Adi", "M Razib", "M Rizki", "Naffa Mayna", "Nurshifa Amalia", "Rayhan Ambiya", "Salma Yuniar", "Muhani Khalifia"]
+      // Jadwal Baru (Umum - Januari 2026)
+      generalSubjects: [
+        { name: "UPACARA BENDERA", time: "07.30 – 08.05", teacher: "Lapangan" },
+        { name: "B. INGGRIS", time: "08.05 – 09.50", teacher: "Bpk Hamdan Mu'akhor" },
+        { name: "ISTIRAHAT", time: "09.50 – 10.10", teacher: "-" },
+        { name: "PPKN", time: "10.10 – 11.55", teacher: "Ibu Dina Muminah" },
+        { name: "ISTIRAHAT", time: "11.55 – 12.25", teacher: "-" },
+        { name: "B. INGGRIS", time: "12.25 – 14.45", teacher: "Bpk Hamdan Mu'akhor" }
+      ],
+      picket: ["Alham Haikal", "Aurel Agri", "Bibit Adi", "M Razib", "M Rizki", "Nurshifa Amalia", "Rayhan Ambiya", "Salma Yuniar", "Muhani Khalifia"]
     },
     { 
       day: "Selasa", 
       uniform: "Baju Putih Abu (PAK SMK)",
-      subjects: [
+      productiveSubjects: [
         { name: "MATA PELAJARAN B.SUNDA", time: "07.30 – 09.50", teacher: "Ibu Nuri Purnamasari" },
         { name: "ISTIRAHAT", time: "09.50 – 10.10", teacher: "-" },
         { name: "MATA PELAJARAN B.SUNDA", time: "10.10 – 10.45", teacher: "Ibu Nuri Purnamasari" },
@@ -33,12 +43,13 @@ const Schedule = () => {
         { name: "MATA PELAJARAN IPAS", time: "12.25 – 13.35", teacher: "Ibu Dina Ika Agustin" },
         { name: "MATA PELAJARAN DPK (2)", time: "13.35 – 14.45", teacher: "Bpk Cecep Supriatna" }
       ],
+      generalSubjects: [], // Belum ada data
       picket: ["Annas Nasri", "Azmi Abdul", "Cakra Buana", "Deri Pasti", "Hasbi Nursyahputra", "Megha Indah", "Ayatul Husna", "Raya Aprilia"]
     },
     { 
       day: "Rabu", 
       uniform: "Baju Batik Smaknis",
-      subjects: [
+      productiveSubjects: [
         { name: "MATA PELAJARAN DPK", time: "07.30 – 09.50", teacher: "Bpk Ahmad Sirojudin" },
         { name: "ISTIRAHAT", time: "09.50 – 10.10", teacher: "-" },
         { name: "MATA PELAJARAN DPK", time: "10.10 – 11.55", teacher: "Bpk Ahmad Sirojudin" },
@@ -46,30 +57,33 @@ const Schedule = () => {
         { name: "MATA PELAJARAN DPK", time: "12.25 – 13.00", teacher: "Bpk Ahmad Sirojudin" },
         { name: "MATA PELAJARAN DPK", time: "13.00 – 14.45", teacher: "Bpk Cecep Supriatna" }
       ],
+      generalSubjects: [],
       picket: ["Galuh Ray", "Irfan Fermadi", "Dimas Alvino", "Fariz Alfauzi", "Rabli Azwar", "Melvina Yeiza", "Evander Yusup", "Salma Zulfa", "Shira Putryasni"]
     },
     { 
       day: "Kamis", 
       uniform: "Baju Batik Smaknis",
-      subjects: [
+      productiveSubjects: [
         { name: "MATA PELAJARAN IPAS", time: "07.30 – 09.50", teacher: "Ibu Dina Ika Agustiani" },
         { name: "ISTIRAHAT", time: "09.50 – 10.10", teacher: "-" },
         { name: "MATA PELAJARAN DPK", time: "10.10 – 11.55", teacher: "Bpk Cecep Supriatna" },
         { name: "ISTIRAHAT", time: "11.55 – 12.25", teacher: "-" },
         { name: "MATA PELAJARAN INF", time: "12.25 – 14.45", teacher: "Bpk Herher Abdul khohar" }
       ],
+      generalSubjects: [],
       picket: ["Raihan Alviansyah", "Wijaya Zainur", "Ardiansah", "Rasya Raditya", "Pahri Gilang", "Maulana", "Rindu Riayu", "Rista Amelia", "Siti Saripah"]
     },
     { 
       day: "Jumat", 
       uniform: "Baju Putih Hitam / Pramuka",
-      subjects: [
+      productiveSubjects: [
         { name: "SHOLAT DHUHA", time: "07.30 – 08.05", teacher: "Bersama" },
         { name: "MATA PELAJARAN DPK 3", time: "08.05 – 08.40", teacher: "Ibu Resita Agustin" },
         { name: "MATA PELAJARAN INF", time: "08.40 – 09.50", teacher: "Bpk Herher Abdul Kohar" },
         { name: "ISTIRAHAT", time: "09.50 – 10.10", teacher: "-" },
         { name: "MATA PELAJARAN INF", time: "10.10 – 11.20", teacher: "Bpk Herher Abdul Khohar" }
       ],
+      generalSubjects: [],
       picket: ["Padil Nurjaman", "Zaky Pairus", "Zyldan Muzhaffar", "Rizkia Febryanti", "Intan Darmawan", "Zulpa Apriliani", "Galuh Raga", "Wolid Herdiansyah", "M Firman Supiani"]
     },
   ];
@@ -111,6 +125,49 @@ const Schedule = () => {
       });
     }
   };
+
+  const renderSubjectList = (subjects: any[], title: string, icon: React.ReactNode, headerColor: string) => (
+    <div className="mb-8 last:mb-0 animate-in fade-in slide-in-from-bottom duration-700">
+      <div className={`flex items-center gap-3 mb-6 p-3 rounded-xl border border-dashed ${headerColor}`}>
+        {icon}
+        <span className="text-xs font-black uppercase tracking-widest text-slate-900">{title}</span>
+      </div>
+      
+      <div className="space-y-4">
+        {subjects.map((sub, j) => (
+          <div 
+            key={j} 
+            className={`flex flex-col md:flex-row md:items-center justify-between p-6 rounded-[2rem] transition-all duration-500 hover:bg-white hover:shadow-xl border border-transparent hover:border-slate-100 group/item ${
+              sub.name.includes('ISTIRAHAT') || sub.name.includes('UPACARA') || sub.name.includes('SHOLAT') ? 'bg-slate-50/60' : 'bg-white/40'
+            }`}
+          >
+            <div className="flex items-center gap-5 mb-4 md:mb-0">
+              <div className={`p-2 rounded-xl transition-colors ${
+                sub.name.includes('ISTIRAHAT') 
+                ? 'bg-amber-100 text-amber-600' 
+                : sub.name.includes('UPACARA') || sub.name.includes('SHOLAT') 
+                ? 'bg-blue-100 text-blue-600' 
+                : 'bg-slate-100 text-slate-900'
+              }`}>
+                <BookOpen size={18} />
+              </div>
+              <div>
+                <h4 className="font-artist text-xl font-black text-slate-900 leading-none mb-2 uppercase tracking-tight group-hover/item:text-slate-600 transition-colors">{sub.name}</h4>
+                <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">{sub.teacher}</p>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 bg-white px-5 py-2.5 rounded-full border border-slate-100 shadow-sm">
+                <Clock size={13} className="text-slate-400" />
+                <span className="text-[11px] font-black tracking-widest text-slate-600">{sub.time}</span>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 
   return (
     <section className="py-24 pt-32 bg-clean min-h-screen relative overflow-hidden">
@@ -182,43 +239,28 @@ const Schedule = () => {
 
                   <div className="grid lg:grid-cols-3 gap-10">
                     {/* Subjects Column */}
-                    <div className="lg:col-span-2 space-y-4">
-                      <div className="flex items-center gap-3 mb-6">
-                        <Library size={18} className="text-slate-900" />
-                        <span className="text-xs font-black uppercase tracking-widest text-slate-900">Timeline Belajar</span>
-                      </div>
+                    <div className="lg:col-span-2">
                       
-                      {dayData.subjects.map((sub, j) => (
-                        <div 
-                          key={j} 
-                          className={`flex flex-col md:flex-row md:items-center justify-between p-6 rounded-[2rem] transition-all duration-500 hover:bg-white hover:shadow-xl border border-transparent hover:border-slate-100 group/item ${
-                            sub.name.includes('ISTIRAHAT') || sub.name.includes('UPACARA') || sub.name.includes('SHOLAT') ? 'bg-slate-50/60' : 'bg-white/40'
-                          }`}
-                        >
-                          <div className="flex items-center gap-5 mb-4 md:mb-0">
-                            <div className={`p-2 rounded-xl transition-colors ${
-                              sub.name.includes('ISTIRAHAT') 
-                              ? 'bg-amber-100 text-amber-600' 
-                              : sub.name.includes('UPACARA') || sub.name.includes('SHOLAT') 
-                              ? 'bg-blue-100 text-blue-600' 
-                              : 'bg-slate-100 text-slate-900'
-                            }`}>
-                              <BookOpen size={18} />
-                            </div>
-                            <div>
-                              <h4 className="font-artist text-xl font-black text-slate-900 leading-none mb-2 uppercase tracking-tight group-hover/item:text-slate-600 transition-colors">{sub.name}</h4>
-                              <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">{sub.teacher}</p>
-                            </div>
-                          </div>
-                          
-                          <div className="flex items-center gap-4">
-                            <div className="flex items-center gap-2 bg-white px-5 py-2.5 rounded-full border border-slate-100 shadow-sm">
-                              <Clock size={13} className="text-slate-400" />
-                              <span className="text-[11px] font-black tracking-widest text-slate-600">{sub.time}</span>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
+                      {/* RENDER PRODUCTIVE SUBJECTS */}
+                      {dayData.productiveSubjects.length > 0 && 
+                        renderSubjectList(
+                          dayData.productiveSubjects, 
+                          "Kelas Produktif (Semester Ganjil)", 
+                          <Briefcase size={18} className="text-slate-900" />,
+                          "bg-slate-100 border-slate-200"
+                        )
+                      }
+
+                      {/* RENDER GENERAL SUBJECTS (NEW) */}
+                      {dayData.generalSubjects.length > 0 && 
+                        renderSubjectList(
+                          dayData.generalSubjects, 
+                          "Kelas Umum (Mulai 12 Jan 2026)", 
+                          <BookMarked size={18} className="text-blue-600" />,
+                          "bg-blue-50 border-blue-200"
+                        )
+                      }
+                      
                     </div>
 
                     {/* Picket Sidebar */}
