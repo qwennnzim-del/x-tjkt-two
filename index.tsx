@@ -15,6 +15,10 @@ import GlobalWall from './GlobalWall';
 import Polling from './Polling';
 import NotificationSystem from './NotificationSystem';
 import ChatAssistant from './ChatAssistant'; 
+import Quiz from './Quiz'; 
+import Leaderboard from './Leaderboard'; 
+import Calculator from './Calculator'; // Import Calculator
+import Cursor from './Cursor'; // Import Cursor
 import { db } from './firebase';
 import { doc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
@@ -40,10 +44,10 @@ const FeatureTour: React.FC<FeatureTourProps> = ({ onComplete }) => {
       color: "bg-gradient-to-tr from-pink-500 to-rose-500"
     },
     {
-      title: "Demokrasi (Vote)",
-      desc: "Suaramu berharga! Ikut voting untuk keputusan kelas, mulai dari desain baju sampai tujuan study tour.",
-      icon: <PieChart size={48} className="text-white" />,
-      color: "bg-gradient-to-tr from-emerald-500 to-teal-500"
+      title: "TJKT Toolkit",
+      desc: "Baru! Kalkulator Subnet IP untuk mempermudah tugas produktif kita. Cek menu 'Tools'.",
+      icon: <RefreshCw size={48} className="text-white" />,
+      color: "bg-gradient-to-tr from-cyan-500 to-teal-500"
     },
     {
       title: "Cinema TJKT",
@@ -211,6 +215,12 @@ const App = () => {
         return <GlobalWall user={user} />;
       case 'voting':
         return <Polling user={user} />;
+      case 'quiz':
+        return <Quiz user={user} onSeeLeaderboard={() => setCurrentPage('leaderboard')} />;
+      case 'leaderboard':
+        return <Leaderboard />;
+      case 'tools':
+        return <Calculator />;
       default:
         return <Home onExplore={setCurrentPage} user={user} />;
     }
@@ -225,7 +235,10 @@ const App = () => {
 
   // 2. Render Aplikasi Normal
   return (
-    <div className="bg-clean min-h-screen selection:bg-slate-900 selection:text-white relative">
+    <div className="bg-clean min-h-screen selection:bg-slate-900 selection:text-white relative cursor-none md:cursor-auto">
+      {/* GLOBAL CUSTOM CURSOR */}
+      <Cursor />
+      
       <div className="fixed inset-0 pointer-events-none opacity-[0.04] z-[9999] bg-[url('https://grainy-gradients.vercel.app/noise.svg')]"></div>
       <div className="fixed top-0 left-0 w-full h-full pointer-events-none z-[9998] bg-gradient-to-tr from-blue-50/10 via-transparent to-purple-50/10"></div>
       

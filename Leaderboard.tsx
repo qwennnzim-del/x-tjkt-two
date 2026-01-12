@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Medal, Crown, Sparkles, Loader2, Trophy, Users, ShieldCheck, CheckCircle2, User as UserIcon } from 'lucide-react';
+import { Medal, Crown, Sparkles, Loader2, Trophy, Users, ShieldCheck, CheckCircle2, User as UserIcon, Flame } from 'lucide-react';
 import { db } from './firebase';
 import { 
   collection, 
@@ -24,6 +24,9 @@ const Leaderboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState<string | null>(null);
 
+  // GUNAKAN COLLECTION BARU V2
+  const COLLECTION_NAME = "leaderboard_v2";
+
   useEffect(() => {
     // Ambil info user yang login dari localStorage
     const savedUser = localStorage.getItem('tjkt_session');
@@ -33,9 +36,9 @@ const Leaderboard: React.FC = () => {
 
     // Gunakan query sederhana dengan satu orderBy untuk stabilitas tanpa index manual
     const q = query(
-      collection(db, "leaderboard"), 
+      collection(db, COLLECTION_NAME), 
       orderBy("score", "desc"), 
-      limit(15) // Naikkan limit ke 15 agar lebih banyak yang terlihat
+      limit(20) // Limit ditingkatkan sedikit
     );
     
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -67,13 +70,13 @@ const Leaderboard: React.FC = () => {
       <div className="container mx-auto max-w-4xl">
         <header className="text-center mb-16 animate-in slide-in-from-bottom duration-700">
           <div className="inline-flex items-center gap-3 glass px-6 py-2 rounded-full mb-6">
-            <Trophy size={16} className="text-amber-500" />
-            <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Global Rankings</span>
+            <Flame size={16} className="text-orange-500 fill-orange-500" />
+            <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Season 2: Fresh Start</span>
           </div>
           <h2 className="font-artist text-5xl md:text-8xl font-black text-slate-900 tracking-tighter uppercase leading-none">
             HALL OF <span className="text-slate-200">FAME</span>
           </h2>
-          <p className="font-handwriting text-3xl text-slate-400 mt-4">Panggung para jawara X TJKT TWO</p>
+          <p className="font-handwriting text-3xl text-slate-400 mt-4">Panggung para jawara baru</p>
           <div className="w-24 h-1.5 bg-slate-900 mx-auto mt-10 rounded-full"></div>
         </header>
 
@@ -84,8 +87,8 @@ const Leaderboard: React.FC = () => {
                 <Users size={20} />
               </div>
               <div>
-                <h3 className="font-artist text-xl font-black text-slate-900 uppercase tracking-tight leading-none">Top Teknisi</h3>
-                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">Sistem Real-Time Aktif</p>
+                <h3 className="font-artist text-xl font-black text-slate-900 uppercase tracking-tight leading-none">Top Players V2</h3>
+                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">Reset & Updated</p>
               </div>
             </div>
             {loading && <Loader2 size={20} className="text-slate-400 animate-spin" />}
@@ -95,7 +98,7 @@ const Leaderboard: React.FC = () => {
             {loading ? (
               <div className="py-24 text-center">
                 <Loader2 size={40} className="mx-auto text-slate-200 animate-spin mb-4" />
-                <p className="text-[10px] font-black uppercase tracking-widest text-slate-300">Synchronizing Server...</p>
+                <p className="text-[10px] font-black uppercase tracking-widest text-slate-300">Synchronizing New Database...</p>
               </div>
             ) : leaderboard.length > 0 ? (
               leaderboard.map((entry, i) => {
@@ -162,15 +165,15 @@ const Leaderboard: React.FC = () => {
             ) : (
               <div className="py-24 text-center glass rounded-[2.5rem] border-dashed border-2 border-slate-200">
                 <Sparkles size={40} className="mx-auto text-slate-200 mb-6" />
-                <h3 className="font-artist text-2xl text-slate-400 font-bold uppercase tracking-tight">Belum ada skor tercatat</h3>
-                <p className="text-slate-300 text-[10px] mt-2 uppercase tracking-[0.3em] font-black">Data sedang disinkronkan atau kosong...</p>
+                <h3 className="font-artist text-2xl text-slate-400 font-bold uppercase tracking-tight">Belum ada skor V2</h3>
+                <p className="text-slate-300 text-[10px] mt-2 uppercase tracking-[0.3em] font-black">Jadilah yang pertama mengisi papan skor baru!</p>
               </div>
             )}
           </div>
 
           <div className="mt-16 pt-10 border-t border-slate-100 text-center flex flex-col items-center gap-4">
             <p className="text-[9px] font-black text-slate-300 uppercase tracking-[0.5em]">Humble — Solid — Family</p>
-            <p className="font-handwriting text-2xl text-slate-400">Teruslah berkembang, kejarlah mimpimu! ✨</p>
+            <p className="font-handwriting text-2xl text-slate-400">Siapa raja kuis selanjutnya? ✨</p>
           </div>
         </div>
       </div>

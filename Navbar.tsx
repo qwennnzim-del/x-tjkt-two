@@ -123,6 +123,8 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, user }) =>
     { name: 'Home', id: 'home' },
     { name: 'Vibes', id: 'about' },
     { name: 'Cinema', id: 'cinema' },
+    { name: 'Tools', id: 'tools' }, // NEW: TJKT TOOLKIT
+    { name: 'Game', id: 'quiz' }, 
     { name: 'Wall', id: 'wall' },
     { name: 'Vote', id: 'voting' },
     { name: 'Squad', id: 'members' },
@@ -152,18 +154,18 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, user }) =>
       <div className="container mx-auto px-6">
         <div className={`glass rounded-full px-6 py-3 flex items-center justify-between transition-all duration-500 ${scrolled ? 'shadow-xl bg-white/80 border-white' : 'bg-white/10 border-transparent'}`}>
           {/* LOGO */}
-          <div className="flex items-center gap-2 cursor-pointer group" onClick={() => handleNavClick('home')}>
+          <div className="flex items-center gap-2 cursor-pointer group hover-trigger" onClick={() => handleNavClick('home')}>
             <div className="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center text-white font-black text-xs transition-transform group-hover:rotate-6">X</div>
             <span className="font-artist text-xl font-bold tracking-tighter text-slate-800">TJKT TWO</span>
           </div>
 
           {/* DESKTOP LINKS (Hidden on Mobile) */}
-          <div className="hidden lg:flex items-center gap-6">
+          <div className="hidden lg:flex items-center gap-4">
             {navLinks.map((link) => (
               <button 
                 key={link.id} 
                 onClick={() => handleNavClick(link.id)}
-                className={`text-[10px] font-black uppercase tracking-widest transition-all px-3 py-1 rounded-full ${currentPage === link.id ? 'bg-slate-900 text-white shadow-lg' : 'text-slate-400 hover:text-slate-900'}`}
+                className={`text-[10px] font-black uppercase tracking-widest transition-all px-3 py-1 rounded-full hover-trigger ${currentPage === link.id ? 'bg-slate-900 text-white shadow-lg' : 'text-slate-400 hover:text-slate-900'}`}
               >
                 {link.name}
               </button>
@@ -179,7 +181,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, user }) =>
                 <div className="relative" ref={notificationRef}>
                   <button 
                     onClick={() => { setShowNotifications(!showNotifications); setHasNew(false); }}
-                    className={`p-2.5 rounded-full transition-all relative group ${showNotifications ? 'bg-blue-600 text-white shadow-blue-200 shadow-lg' : 'bg-white border border-slate-100 text-slate-400 hover:text-blue-600 hover:border-blue-100 hover:bg-blue-50/30'}`}
+                    className={`p-2.5 rounded-full transition-all relative group hover-trigger ${showNotifications ? 'bg-blue-600 text-white shadow-blue-200 shadow-lg' : 'bg-white border border-slate-100 text-slate-400 hover:text-blue-600 hover:border-blue-100 hover:bg-blue-50/30'}`}
                   >
                     <Bell size={18} className={hasNew ? 'animate-bounce' : 'group-hover:rotate-12 transition-transform'} />
                     {hasNew && (
@@ -202,7 +204,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, user }) =>
                           <button 
                             onClick={handleClearNotifications}
                             disabled={isClearing}
-                            className="flex items-center gap-1.5 px-3 py-1 bg-red-50 text-red-500 hover:bg-red-500 hover:text-white rounded-full transition-all text-[8px] font-black uppercase tracking-widest disabled:opacity-50"
+                            className="flex items-center gap-1.5 px-3 py-1 bg-red-50 text-red-500 hover:bg-red-500 hover:text-white rounded-full transition-all text-[8px] font-black uppercase tracking-widest disabled:opacity-50 hover-trigger"
                           >
                             {isClearing ? 'Cleaning...' : <><Trash2 size={10} /> Clear All</>}
                           </button>
@@ -272,7 +274,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, user }) =>
                 <div className="relative" ref={moreMenuRef}>
                   <button 
                     onClick={() => setShowMoreMenu(!showMoreMenu)}
-                    className={`p-2.5 rounded-full transition-all ${showMoreMenu ? 'bg-slate-900 text-white' : 'bg-white border border-slate-100 text-slate-400 hover:text-slate-900'}`}
+                    className={`p-2.5 rounded-full transition-all hover-trigger ${showMoreMenu ? 'bg-slate-900 text-white' : 'bg-white border border-slate-100 text-slate-400 hover:text-slate-900'}`}
                   >
                     <MoreVertical size={18} />
                   </button>
@@ -281,7 +283,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, user }) =>
                     <div className="absolute top-14 right-0 w-48 glass rounded-[1.5rem] shadow-3xl border-white/60 p-2 animate-in fade-in zoom-in duration-300 z-[60]">
                       <button 
                         onClick={handleLogout}
-                        className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-red-50 text-red-500 transition-all group"
+                        className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-red-50 text-red-500 transition-all group hover-trigger"
                       >
                         <LogOut size={16} className="group-hover:-translate-x-1 transition-transform" />
                         <span className="text-[10px] font-black uppercase tracking-widest">Sign Out</span>
@@ -295,7 +297,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, user }) =>
             {/* PROFILE BUTTON */}
             <button 
               onClick={() => handleNavClick('profile')}
-              className={`hidden lg:flex items-center gap-3 p-1 pr-4 rounded-full transition-all border ${currentPage === 'profile' ? 'bg-slate-900 border-slate-900 text-white shadow-xl' : 'bg-white border-slate-100 text-slate-900 hover:border-slate-300'}`}
+              className={`hidden lg:flex items-center gap-3 p-1 pr-4 rounded-full transition-all border hover-trigger ${currentPage === 'profile' ? 'bg-slate-900 border-slate-900 text-white shadow-xl' : 'bg-white border-slate-100 text-slate-900 hover:border-slate-300'}`}
             >
               <div className="w-8 h-8 rounded-full overflow-hidden bg-slate-200 border border-white/50 shadow-sm shrink-0">
                 {user.photo ? (
@@ -315,7 +317,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, user }) =>
             </button>
 
             {/* MOBILE MENU TOGGLE */}
-            <button className="lg:hidden p-2 text-slate-800 bg-white border border-slate-100 rounded-full hover:bg-slate-50" onClick={() => setIsOpen(!isOpen)}>
+            <button className="lg:hidden p-2 text-slate-800 bg-white border border-slate-100 rounded-full hover:bg-slate-50 hover-trigger" onClick={() => setIsOpen(!isOpen)}>
               {isOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
           </div>
@@ -330,7 +332,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, user }) =>
               <button 
                 key={link.id} 
                 onClick={() => handleNavClick(link.id)}
-                className={`text-sm font-black uppercase tracking-[0.2em] py-3 text-left border-b border-slate-50 last:border-0 ${currentPage === link.id ? 'text-slate-900' : 'text-slate-400'}`}
+                className={`text-sm font-black uppercase tracking-[0.2em] py-3 text-left border-b border-slate-50 last:border-0 hover-trigger ${currentPage === link.id ? 'text-slate-900' : 'text-slate-400'}`}
               >
                 {link.name}
               </button>
@@ -338,7 +340,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, user }) =>
             
             <button 
               onClick={() => handleNavClick('profile')}
-              className={`flex items-center gap-4 py-4 mt-2 border-t border-slate-50`}
+              className={`flex items-center gap-4 py-4 mt-2 border-t border-slate-50 hover-trigger`}
             >
               <div className="w-10 h-10 rounded-full overflow-hidden bg-slate-200 border border-slate-100">
                 {user.photo ? <img src={user.photo} alt="P" className="w-full h-full object-cover" /> : <UserIcon size={20} className="m-auto mt-2" />}
@@ -354,7 +356,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, user }) =>
             {user.isAdmin && (
               <button 
                 onClick={handleLogout}
-                className="w-full flex items-center justify-center gap-3 py-4 bg-red-50 text-red-500 rounded-2xl text-[10px] font-black uppercase tracking-widest mt-2"
+                className="w-full flex items-center justify-center gap-3 py-4 bg-red-50 text-red-500 rounded-2xl text-[10px] font-black uppercase tracking-widest mt-2 hover-trigger"
               >
                 <LogOut size={16} /> Logout Securely
               </button>
