@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
-import { Settings, Clock, AlertTriangle, Hammer, RefreshCw, Lock, Unlock, WifiOff, Crown, Sparkles, PieChart, StickyNote, Film, Bot, ArrowRight, X } from 'lucide-react'; // Added icons
+import { Settings, Clock, AlertTriangle, Hammer, RefreshCw, Lock, Unlock, WifiOff, Crown, Sparkles, PieChart, StickyNote, Film, Bot, ArrowRight, X, Users2 } from 'lucide-react'; 
 import Navbar from './Navbar';
 import Home from './Home';
 import About from './About';
@@ -17,8 +17,7 @@ import NotificationSystem from './NotificationSystem';
 import ChatAssistant from './ChatAssistant'; 
 import Quiz from './Quiz'; 
 import Leaderboard from './Leaderboard'; 
-import Calculator from './Calculator'; // Import Calculator
-import Cursor from './Cursor'; // Import Cursor
+import GroupGenerator from './GroupGenerator';
 import { db } from './firebase';
 import { doc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
@@ -44,14 +43,14 @@ const FeatureTour: React.FC<FeatureTourProps> = ({ onComplete }) => {
       color: "bg-gradient-to-tr from-pink-500 to-rose-500"
     },
     {
-      title: "TJKT Toolkit",
-      desc: "Baru! Kalkulator Subnet IP untuk mempermudah tugas produktif kita. Cek menu 'Tools'.",
-      icon: <RefreshCw size={48} className="text-white" />,
-      color: "bg-gradient-to-tr from-cyan-500 to-teal-500"
+      title: "Squad Generator",
+      desc: "Fitur baru! Bagi kelompok tugas jadi lebih adil dan seru dengan sistem Spinner otomatis.",
+      icon: <Users2 size={48} className="text-white" />,
+      color: "bg-gradient-to-tr from-emerald-500 to-teal-500"
     },
     {
       title: "Cinema TJKT",
-      desc: "Bioskop mini kelas. Streaming koleksi film Horror yang mencekam, Komedi kocak, hingga Romantis bikin baper.",
+      desc: "Bioskop mini kelas. Streaming koleksi film dokumentasi hingga film baper.",
       icon: <Film size={48} className="text-white" />,
       color: "bg-gradient-to-tr from-red-500 to-orange-500"
     }
@@ -70,55 +69,29 @@ const FeatureTour: React.FC<FeatureTourProps> = ({ onComplete }) => {
   return (
     <div className="fixed inset-0 z-[100] bg-slate-900/90 backdrop-blur-md flex items-center justify-center p-6">
       <div className="w-full max-w-md bg-white rounded-[2.5rem] p-8 shadow-2xl relative overflow-hidden animate-in zoom-in duration-500">
-        
-        {/* Background Blob */}
         <div className={`absolute top-0 left-0 w-full h-32 ${currentStep.color} transition-colors duration-500`}></div>
-        
         <div className="relative z-10">
           <div className={`w-24 h-24 mx-auto -mt-2 mb-6 rounded-3xl ${currentStep.color} flex items-center justify-center shadow-lg transform rotate-3 transition-colors duration-500 border-4 border-white`}>
             {currentStep.icon}
           </div>
-
           <div className="text-center space-y-4 mb-8">
-            <h2 className="font-artist text-3xl font-black text-slate-900 uppercase tracking-tight">
-              {currentStep.title}
-            </h2>
-            <p className="text-slate-500 text-sm leading-relaxed font-medium">
-              {currentStep.desc}
-            </p>
+            <h2 className="font-artist text-3xl font-black text-slate-900 uppercase tracking-tight">{currentStep.title}</h2>
+            <p className="text-slate-500 text-sm leading-relaxed font-medium">{currentStep.desc}</p>
           </div>
-
-          {/* Indicators */}
           <div className="flex justify-center gap-2 mb-8">
             {steps.map((_, i) => (
-              <div 
-                key={i} 
-                className={`h-1.5 rounded-full transition-all duration-300 ${i === step ? 'w-8 bg-slate-900' : 'w-2 bg-slate-200'}`} 
-              />
+              <div key={i} className={`h-1.5 rounded-full transition-all duration-300 ${i === step ? 'w-8 bg-slate-900' : 'w-2 bg-slate-200'}`} />
             ))}
           </div>
-
-          <button 
-            onClick={handleNext}
-            className="w-full py-4 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-slate-800 transition-all shadow-xl group"
-          >
+          <button onClick={handleNext} className="w-full py-4 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-slate-800 transition-all shadow-xl group">
             {step === steps.length - 1 ? "Mulai Jelajahi" : "Lanjut"} 
             <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
-          </button>
-
-          <button 
-            onClick={onComplete}
-            className="absolute top-[-10px] right-[-10px] p-2 text-white/50 hover:text-white transition-colors"
-          >
-            <X size={20} />
           </button>
         </div>
       </div>
     </div>
   );
 };
-
-// --- MAIN APP ---
 
 interface UserData {
   name: string;
@@ -139,48 +112,30 @@ const App = () => {
     if (savedUser) {
       setUser(JSON.parse(savedUser));
     }
-    
-    // Cek apakah user sudah pernah melihat tour
     const tourSeen = localStorage.getItem('tjkt_tour_seen');
     if (!tourSeen && savedUser) {
       setShowTour(true);
     }
-
     setLoading(false);
   }, []);
 
-  // --- ONLINE STATUS HEARTBEAT ---
   useEffect(() => {
     if (!user) return;
-
-    // Fungsi update status 'online' ke Firestore
     const heartbeat = async () => {
       try {
         const userId = user.name.toLowerCase().replace(/\s+/g, '_');
         const userRef = doc(db, "user_logins", userId);
-        // Kita update lastActive agar navbar bisa mendeteksi user ini online
-        await updateDoc(userRef, {
-          lastActive: serverTimestamp(),
-          status: 'online'
-        });
-      } catch (e) {
-        console.error("Heartbeat error", e);
-      }
+        await updateDoc(userRef, { lastActive: serverTimestamp(), status: 'online' });
+      } catch (e) { console.error("Heartbeat error", e); }
     };
-
-    // Panggil sekali saat mount/login
     heartbeat();
-
-    // Panggil setiap 1 menit
     const interval = setInterval(heartbeat, 60000);
-
     return () => clearInterval(interval);
   }, [user]);
 
   const handleLogin = (userData: UserData) => {
     setUser(userData);
     localStorage.setItem('tjkt_session', JSON.stringify(userData));
-    // Tampilkan tour setelah login pertama kali
     const tourSeen = localStorage.getItem('tjkt_tour_seen');
     if (!tourSeen) setShowTour(true);
   };
@@ -197,60 +152,35 @@ const App = () => {
 
   const renderPage = () => {
     if (!user) return <Login onLogin={handleLogin} />;
-
     switch (currentPage) {
-      case 'home':
-        return <Home onExplore={setCurrentPage} user={user} />;
-      case 'about':
-        return <About isAdmin={user.isAdmin} />;
-      case 'cinema': 
-        return <Cinema isAdmin={user.isAdmin} />;
-      case 'members':
-        return <Members />;
-      case 'schedule':
-        return <Schedule />;
-      case 'profile':
-        return <Profile user={user} onUpdate={handleUpdateProfile} />;
-      case 'wall':
-        return <GlobalWall user={user} />;
-      case 'voting':
-        return <Polling user={user} />;
-      case 'quiz':
-        return <Quiz user={user} onSeeLeaderboard={() => setCurrentPage('leaderboard')} />;
-      case 'leaderboard':
-        return <Leaderboard />;
-      case 'tools':
-        return <Calculator />;
-      default:
-        return <Home onExplore={setCurrentPage} user={user} />;
+      case 'home': return <Home onExplore={setCurrentPage} user={user} />;
+      case 'about': return <About isAdmin={user.isAdmin} />;
+      case 'cinema': return <Cinema isAdmin={user.isAdmin} />;
+      case 'members': return <Members />;
+      case 'schedule': return <Schedule />;
+      case 'profile': return <Profile user={user} onUpdate={handleUpdateProfile} />;
+      case 'wall': return <GlobalWall user={user} />;
+      case 'voting': return <Polling user={user} />;
+      case 'quiz': return <Quiz user={user} onSeeLeaderboard={() => setCurrentPage('leaderboard')} />;
+      case 'leaderboard': return <Leaderboard />;
+      case 'generator': return <GroupGenerator isAdmin={user.isAdmin} />;
+      default: return <Home onExplore={setCurrentPage} user={user} />;
     }
   };
 
-  // 1. Cek Loading Awal
   if (loading) return (
     <div className="h-screen w-screen flex items-center justify-center bg-clean">
       <div className="animate-pulse font-artist text-2xl text-slate-400">Loading X TJKT TWO...</div>
     </div>
   );
 
-  // 2. Render Aplikasi Normal
   return (
-    <div className="bg-clean min-h-screen selection:bg-slate-900 selection:text-white relative cursor-none md:cursor-auto">
-      {/* GLOBAL CUSTOM CURSOR */}
-      <Cursor />
-      
+    <div className="bg-clean min-h-screen selection:bg-slate-900 selection:text-white relative">
       <div className="fixed inset-0 pointer-events-none opacity-[0.04] z-[9999] bg-[url('https://grainy-gradients.vercel.app/noise.svg')]"></div>
       <div className="fixed top-0 left-0 w-full h-full pointer-events-none z-[9998] bg-gradient-to-tr from-blue-50/10 via-transparent to-purple-50/10"></div>
-      
-      {/* FEATURE TOUR OVERLAY */}
       {showTour && <FeatureTour onComplete={completeTour} />}
-
-      {/* GLOBAL NOTIFICATION SYSTEM */}
       <NotificationSystem />
-
-      {/* AI CHAT ASSISTANT (Hzell Virtual) */}
       {user && <ChatAssistant />}
-
       {user && (
         <Navbar 
           currentPage={currentPage} 
@@ -258,11 +188,9 @@ const App = () => {
           user={user}
         />
       )}
-      
       <main className="animate-in fade-in duration-1000">
         {renderPage()}
       </main>
-
       {user && <Footer />}
     </div>
   );

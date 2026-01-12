@@ -27,7 +27,7 @@ interface LoginActivity {
   name: string;
   classMajor: string;
   timestamp: any;
-  lastActive?: any; // Field baru untuk heartbeat
+  lastActive?: any; 
   isAdmin: boolean;
   deviceType?: string;
   deviceOS?: string;
@@ -52,82 +52,37 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, user }) =>
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Real-time Notification Listener for Admin (Updated for Online Status)
   useEffect(() => {
     if (!user.isAdmin) return;
-
-    // Urutkan berdasarkan lastActive jika ada, atau timestamp login
-    const q = query(
-      collection(db, "user_logins"),
-      orderBy("lastActive", "desc"), 
-      limit(20) 
-    );
-
+    const q = query(collection(db, "user_logins"), orderBy("lastActive", "desc"), limit(20));
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const newLogins = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as LoginActivity[];
-      
-      // Jika data berubah drastis (misal ada user baru login di paling atas)
+      const newLogins = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as LoginActivity[];
       if (logins.length > 0 && newLogins.length > 0 && newLogins[0].id !== logins[0].id) {
         setHasNew(true);
       }
       setLogins(newLogins);
-    }, (err) => {
-      console.error("Notification listener failed:", err);
-    });
-
+    }, (err) => { console.error("Notification listener failed:", err); });
     return () => unsubscribe();
   }, [user.isAdmin, logins.length]);
 
-  // Click outside to close menus
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (notificationRef.current && !notificationRef.current.contains(event.target as Node)) {
-        setShowNotifications(false);
-      }
-      if (moreMenuRef.current && !moreMenuRef.current.contains(event.target as Node)) {
-        setShowMoreMenu(false);
-      }
+      if (notificationRef.current && !notificationRef.current.contains(event.target as Node)) { setShowNotifications(false); }
+      if (moreMenuRef.current && !moreMenuRef.current.contains(event.target as Node)) { setShowMoreMenu(false); }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleClearNotifications = async () => {
-    if (!user.isAdmin) return;
-    if (!window.confirm("Hapus SEMUA riwayat notifikasi login? Tindakan ini tidak bisa dibatalkan.")) return;
-
-    setIsClearing(true);
-    try {
-      const q = query(collection(db, "user_logins"));
-      const snapshot = await getDocs(q);
-
-      const batch = writeBatch(db);
-      snapshot.docs.forEach((doc) => {
-        batch.delete(doc.ref);
-      });
-
-      await batch.commit();
-      setHasNew(false);
-    } catch (error) {
-      console.error("Error clearing notifications:", error);
-      alert("Gagal menghapus notifikasi.");
-    } finally {
-      setIsClearing(false);
-    }
-  };
-
   const navLinks = [
     { name: 'Home', id: 'home' },
     { name: 'Vibes', id: 'about' },
     { name: 'Cinema', id: 'cinema' },
-    { name: 'Tools', id: 'tools' }, // NEW: TJKT TOOLKIT
+    { name: 'Squad', id: 'members' },
+    { name: 'Generator', id: 'generator' }, 
     { name: 'Game', id: 'quiz' }, 
     { name: 'Wall', id: 'wall' },
     { name: 'Vote', id: 'voting' },
-    { name: 'Squad', id: 'members' },
     { name: 'Jadwal', id: 'schedule' },
   ];
 
@@ -146,221 +101,83 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, user }) =>
      if (!lastActive) return false;
      const now = Date.now();
      const diff = now - (lastActive.seconds * 1000);
-     return diff < 2 * 60 * 1000; // Online jika aktif dalam 2 menit terakhir
+     return diff < 2 * 60 * 1000; 
   };
 
   return (
     <nav className={`fixed w-full z-50 transition-all duration-500 ${scrolled ? 'py-4' : 'py-6'}`}>
       <div className="container mx-auto px-6">
         <div className={`glass rounded-full px-6 py-3 flex items-center justify-between transition-all duration-500 ${scrolled ? 'shadow-xl bg-white/80 border-white' : 'bg-white/10 border-transparent'}`}>
-          {/* LOGO */}
-          <div className="flex items-center gap-2 cursor-pointer group hover-trigger" onClick={() => handleNavClick('home')}>
+          <div className="flex items-center gap-2 cursor-pointer group" onClick={() => handleNavClick('home')}>
             <div className="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center text-white font-black text-xs transition-transform group-hover:rotate-6">X</div>
             <span className="font-artist text-xl font-bold tracking-tighter text-slate-800">TJKT TWO</span>
           </div>
 
-          {/* DESKTOP LINKS (Hidden on Mobile) */}
-          <div className="hidden lg:flex items-center gap-4">
+          <div className="hidden lg:flex items-center gap-2">
             {navLinks.map((link) => (
               <button 
                 key={link.id} 
                 onClick={() => handleNavClick(link.id)}
-                className={`text-[10px] font-black uppercase tracking-widest transition-all px-3 py-1 rounded-full hover-trigger ${currentPage === link.id ? 'bg-slate-900 text-white shadow-lg' : 'text-slate-400 hover:text-slate-900'}`}
+                className={`text-[9px] font-black uppercase tracking-widest transition-all px-3 py-1.5 rounded-full ${currentPage === link.id ? 'bg-slate-900 text-white shadow-lg' : 'text-slate-400 hover:text-slate-900'}`}
               >
                 {link.name}
               </button>
             ))}
           </div>
 
-          {/* RIGHT SIDE ACTIONS */}
           <div className="flex items-center gap-2">
-            
-            {/* ADMIN FEATURES */}
             {user.isAdmin && (
-              <div className="flex items-center gap-2 mr-1">
+              <div className="flex items-center gap-2">
                 <div className="relative" ref={notificationRef}>
-                  <button 
-                    onClick={() => { setShowNotifications(!showNotifications); setHasNew(false); }}
-                    className={`p-2.5 rounded-full transition-all relative group hover-trigger ${showNotifications ? 'bg-blue-600 text-white shadow-blue-200 shadow-lg' : 'bg-white border border-slate-100 text-slate-400 hover:text-blue-600 hover:border-blue-100 hover:bg-blue-50/30'}`}
-                  >
-                    <Bell size={18} className={hasNew ? 'animate-bounce' : 'group-hover:rotate-12 transition-transform'} />
-                    {hasNew && (
-                      <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full ring-2 ring-white animate-pulse"></span>
-                    )}
+                  <button onClick={() => { setShowNotifications(!showNotifications); setHasNew(false); }} className={`p-2.5 rounded-full transition-all relative group ${showNotifications ? 'bg-blue-600 text-white shadow-lg' : 'bg-white border border-slate-100 text-slate-400'}`}>
+                    <Bell size={18} className={hasNew ? 'animate-bounce' : ''} />
+                    {hasNew && <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full ring-2 ring-white animate-pulse"></span>}
                   </button>
-
-                  {/* NOTIFICATION DROPDOWN */}
                   {showNotifications && (
                     <div className="absolute top-14 right-[-60px] md:right-0 w-[85vw] md:w-96 glass rounded-[2.5rem] shadow-3xl border-white/60 p-6 animate-in slide-in-from-top-4 duration-500 overflow-hidden z-[60]">
                       <div className="flex items-center justify-between mb-6">
-                        <div className="flex items-center gap-2">
-                          <div className="p-1.5 bg-blue-50 text-blue-600 rounded-lg">
-                            <ShieldAlert size={14} />
-                          </div>
-                          <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-900">User Activity</h4>
-                        </div>
-                        
-                        {logins.length > 0 && (
-                          <button 
-                            onClick={handleClearNotifications}
-                            disabled={isClearing}
-                            className="flex items-center gap-1.5 px-3 py-1 bg-red-50 text-red-500 hover:bg-red-500 hover:text-white rounded-full transition-all text-[8px] font-black uppercase tracking-widest disabled:opacity-50 hover-trigger"
-                          >
-                            {isClearing ? 'Cleaning...' : <><Trash2 size={10} /> Clear All</>}
-                          </button>
-                        )}
+                        <div className="flex items-center gap-2"><h4 className="text-[10px] font-black uppercase tracking-widest text-slate-900">User Activity</h4></div>
                       </div>
-
                       <div className="space-y-3 max-h-[400px] overflow-y-auto no-scrollbar">
-                        {logins.length > 0 ? (
-                          logins.map((login) => {
-                             const isOnline = checkIsOnline(login.lastActive || login.timestamp);
-                             
-                             return (
-                            <div key={login.id} className="flex gap-4 p-3.5 rounded-3xl hover:bg-white transition-all border border-transparent hover:border-slate-50 group/item shadow-sm hover:shadow-md">
-                              <div className={`w-10 h-10 rounded-full overflow-hidden flex items-center justify-center shrink-0 border-2 ${login.isAdmin ? 'border-red-400' : 'border-slate-100'}`}>
-                                {login.photo ? (
-                                   <img src={login.photo} alt="User" className="w-full h-full object-cover" />
-                                ) : (
-                                   <div className={`w-full h-full flex items-center justify-center ${login.isAdmin ? 'bg-red-50 text-red-500' : 'bg-slate-50 text-slate-400'}`}>
-                                      <UserIcon size={16} />
-                                   </div>
-                                )}
+                        {logins.map((login) => {
+                          const isOnline = checkIsOnline(login.lastActive || login.timestamp);
+                          return (
+                            <div key={login.id} className="flex gap-4 p-3 rounded-2xl bg-white/40 border border-white/60">
+                              <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-slate-100 shrink-0">
+                                {login.photo ? <img src={login.photo} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center bg-slate-50"><UserIcon size={16}/></div>}
                               </div>
                               <div className="flex-grow">
                                 <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-1.5">
-                                    <p className={`text-xs font-black uppercase tracking-tight ${login.isAdmin ? 'text-red-600' : 'text-slate-900'}`}>
-                                      {login.name.split(' ')[0]}
-                                    </p>
-                                    {login.isAdmin && <CheckCircle2 size={12} className="text-red-500" />}
-                                  </div>
-                                  <div className={`flex items-center gap-1 text-[9px] font-black px-2 py-0.5 rounded-full ${isOnline ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-50 text-slate-400'}`}>
-                                    <div className={`w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}`}></div>
-                                    {isOnline ? 'ONLINE' : 'OFFLINE'}
-                                  </div>
+                                  <p className="text-xs font-black uppercase text-slate-900">{login.name.split(' ')[0]}</p>
+                                  <div className={`text-[8px] font-black px-2 py-0.5 rounded-full ${isOnline ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-400'}`}>{isOnline ? 'ONLINE' : 'OFFLINE'}</div>
                                 </div>
-                                
-                                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none mt-1">
-                                  {login.classMajor}
-                                </p>
-
-                                <div className="flex items-center gap-3 mt-2 pt-2 border-t border-dashed border-slate-100">
-                                  <div className="flex items-center gap-1 text-[9px] font-bold text-slate-500">
-                                    {login.deviceType?.includes('HP') ? <Smartphone size={10} /> : <Monitor size={10} />}
-                                    <span>{login.deviceType || 'Unknown Device'}</span>
-                                  </div>
-                                </div>
+                                <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-1">{login.classMajor}</p>
                               </div>
                             </div>
-                          )})
-                        ) : (
-                          <div className="py-12 text-center">
-                            <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                              <Bell size={20} className="text-slate-200" />
-                            </div>
-                            <p className="text-[9px] font-black uppercase tracking-widest text-slate-300">Clean. No new activity.</p>
-                          </div>
-                        )}
+                          );
+                        })}
                       </div>
-                      
-                      <div className="mt-6 pt-4 border-t border-slate-100 text-center">
-                        <button className="text-[9px] font-black uppercase tracking-widest text-blue-600 hover:text-blue-700 transition-colors">Monitoring System Active</button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                <div className="relative" ref={moreMenuRef}>
-                  <button 
-                    onClick={() => setShowMoreMenu(!showMoreMenu)}
-                    className={`p-2.5 rounded-full transition-all hover-trigger ${showMoreMenu ? 'bg-slate-900 text-white' : 'bg-white border border-slate-100 text-slate-400 hover:text-slate-900'}`}
-                  >
-                    <MoreVertical size={18} />
-                  </button>
-
-                  {showMoreMenu && (
-                    <div className="absolute top-14 right-0 w-48 glass rounded-[1.5rem] shadow-3xl border-white/60 p-2 animate-in fade-in zoom-in duration-300 z-[60]">
-                      <button 
-                        onClick={handleLogout}
-                        className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-red-50 text-red-500 transition-all group hover-trigger"
-                      >
-                        <LogOut size={16} className="group-hover:-translate-x-1 transition-transform" />
-                        <span className="text-[10px] font-black uppercase tracking-widest">Sign Out</span>
-                      </button>
                     </div>
                   )}
                 </div>
               </div>
             )}
-
-            {/* PROFILE BUTTON */}
-            <button 
-              onClick={() => handleNavClick('profile')}
-              className={`hidden lg:flex items-center gap-3 p-1 pr-4 rounded-full transition-all border hover-trigger ${currentPage === 'profile' ? 'bg-slate-900 border-slate-900 text-white shadow-xl' : 'bg-white border-slate-100 text-slate-900 hover:border-slate-300'}`}
-            >
-              <div className="w-8 h-8 rounded-full overflow-hidden bg-slate-200 border border-white/50 shadow-sm shrink-0">
-                {user.photo ? (
-                  <img src={user.photo} alt="Avatar" className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-slate-400">
-                    <UserIcon size={14} />
-                  </div>
-                )}
+            <button onClick={() => handleNavClick('profile')} className={`hidden lg:flex items-center gap-3 p-1 pr-4 rounded-full transition-all border ${currentPage === 'profile' ? 'bg-slate-900 text-white' : 'bg-white border-slate-100 text-slate-900'}`}>
+              <div className="w-8 h-8 rounded-full overflow-hidden bg-slate-200 border border-white shrink-0">
+                {user.photo ? <img src={user.photo} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center"><UserIcon size={14} /></div>}
               </div>
-              <div className="flex items-center gap-1.5">
-                <span className={`text-[10px] font-black leading-none uppercase tracking-tighter truncate max-w-[80px] ${currentPage === 'profile' ? 'text-white' : 'text-slate-900'}`}>
-                  {user.name.split(' ')[0]}
-                </span>
-                {user.isAdmin && <CheckCircle2 size={12} className="text-blue-500 fill-blue-500/10" />}
-              </div>
+              <span className="text-[9px] font-black uppercase tracking-tighter truncate max-w-[80px]">{user.name.split(' ')[0]}</span>
             </button>
-
-            {/* MOBILE MENU TOGGLE */}
-            <button className="lg:hidden p-2 text-slate-800 bg-white border border-slate-100 rounded-full hover:bg-slate-50 hover-trigger" onClick={() => setIsOpen(!isOpen)}>
-              {isOpen ? <X size={20} /> : <Menu size={20} />}
-            </button>
+            <button className="lg:hidden p-2 text-slate-800 bg-white border border-slate-100 rounded-full" onClick={() => setIsOpen(!isOpen)}>{isOpen ? <X size={20} /> : <Menu size={20} />}</button>
           </div>
         </div>
       </div>
-
-      {/* MOBILE MENU CONTENT */}
       {isOpen && (
         <div className="absolute top-24 left-6 right-6 lg:hidden z-40">
           <div className="glass rounded-[2.5rem] p-6 flex flex-col gap-4 shadow-3xl animate-in slide-in-from-top duration-500">
             {navLinks.map((link) => (
-              <button 
-                key={link.id} 
-                onClick={() => handleNavClick(link.id)}
-                className={`text-sm font-black uppercase tracking-[0.2em] py-3 text-left border-b border-slate-50 last:border-0 hover-trigger ${currentPage === link.id ? 'text-slate-900' : 'text-slate-400'}`}
-              >
-                {link.name}
-              </button>
+              <button key={link.id} onClick={() => handleNavClick(link.id)} className={`text-sm font-black uppercase tracking-[0.2em] py-3 text-left border-b border-slate-50 last:border-0 ${currentPage === link.id ? 'text-slate-900' : 'text-slate-400'}`}>{link.name}</button>
             ))}
-            
-            <button 
-              onClick={() => handleNavClick('profile')}
-              className={`flex items-center gap-4 py-4 mt-2 border-t border-slate-50 hover-trigger`}
-            >
-              <div className="w-10 h-10 rounded-full overflow-hidden bg-slate-200 border border-slate-100">
-                {user.photo ? <img src={user.photo} alt="P" className="w-full h-full object-cover" /> : <UserIcon size={20} className="m-auto mt-2" />}
-              </div>
-              <div className="flex flex-col">
-                <span className="flex items-center gap-1.5 uppercase text-xs font-black tracking-tighter text-slate-900">
-                  Account Identity {user.isAdmin && <CheckCircle2 size={12} className="text-blue-500" />}
-                </span>
-                <span className="text-[9px] text-slate-400 uppercase tracking-widest font-bold">Manage Profile Settings</span>
-              </div>
-            </button>
-            
-            {user.isAdmin && (
-              <button 
-                onClick={handleLogout}
-                className="w-full flex items-center justify-center gap-3 py-4 bg-red-50 text-red-500 rounded-2xl text-[10px] font-black uppercase tracking-widest mt-2 hover-trigger"
-              >
-                <LogOut size={16} /> Logout Securely
-              </button>
-            )}
           </div>
         </div>
       )}
