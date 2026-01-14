@@ -139,10 +139,13 @@ const GlobalWall: React.FC<GlobalWallProps> = ({ user }) => {
   const handleLike = async (id: string, currentLikedBy: string[] = []) => {
     const noteRef = doc(db, "global_wall", id);
 
+    // FITUR UNLIMITED LIKE ADMIN DINONAKTIFKAN SEMENTARA
+    /* 
     if (user.isAdmin) {
       await updateDoc(noteRef, { likes: increment(1) });
       return;
     }
+    */
 
     if (currentLikedBy && currentLikedBy.includes(user.name)) return; 
 
@@ -367,13 +370,14 @@ const GlobalWall: React.FC<GlobalWallProps> = ({ user }) => {
 
                   <button 
                     onClick={() => handleLike(note.id, note.likedBy)}
-                    disabled={!user.isAdmin && userHasLiked}
-                    className={`flex items-center gap-1.5 px-2 transition-transform ${!user.isAdmin && userHasLiked ? 'opacity-80 cursor-default' : 'hover:scale-110 cursor-pointer'}`}
+                    // DISABLED UNLIMITED LIKE LOGIC:
+                    disabled={userHasLiked} 
+                    className={`flex items-center gap-1.5 px-2 transition-transform ${userHasLiked ? 'opacity-80 cursor-default' : 'hover:scale-110 cursor-pointer'}`}
                   >
                     <span className={`text-[10px] font-black ${userHasLiked || (user.isAdmin && note.likes > 0) ? 'text-pink-600' : 'text-slate-500'}`}>{note.likes}</span>
                     <Heart 
                       size={16} 
-                      className={`${userHasLiked || (user.isAdmin && note.likes > 0) ? 'fill-pink-500 text-pink-500' : 'text-slate-500'} transition-colors`} 
+                      className={`${userHasLiked ? 'fill-pink-500 text-pink-500' : 'text-slate-500'} transition-colors`} 
                     />
                   </button>
                 </div>

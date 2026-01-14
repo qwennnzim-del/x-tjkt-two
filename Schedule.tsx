@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Calendar, Clock, BookOpen, GraduationCap, Library, Shirt, Users, UserCheck, Briefcase, BookMarked } from 'lucide-react';
+import { Calendar, Clock, BookOpen, GraduationCap, Library, Shirt, Users, UserCheck, Briefcase, BookMarked, AlertCircle } from 'lucide-react';
 
 const Schedule = () => {
   const [activeDay, setActiveDay] = useState(0);
@@ -11,7 +11,6 @@ const Schedule = () => {
     { 
       day: "Senin", 
       uniform: "Baju Putih Abu (Atribut Lengkap)",
-      // Jadwal Lama (Produktif)
       productiveSubjects: [
         { name: "UPACARA BENDERA", time: "07.30 – 08.05", teacher: "Sekolah" },
         { name: "MATA PELAJARAN DPK", time: "08.05 – 09.50", teacher: "Ibu Resita Agustin" },
@@ -20,7 +19,6 @@ const Schedule = () => {
         { name: "ISTIRAHAT", time: "11.55 – 12.25", teacher: "-" },
         { name: "MATA PELAJARAN IPAS", time: "12.25 – 14.45", teacher: "Ibu Dina Ika Agustiani" }
       ],
-      // Jadwal Baru (Umum - Januari 2026)
       generalSubjects: [
         { name: "UPACARA BENDERA", time: "07.30 – 08.05", teacher: "Lapangan" },
         { name: "B. INGGRIS", time: "08.05 – 09.50", teacher: "Bpk Hamdan Mu'akhor" },
@@ -29,11 +27,12 @@ const Schedule = () => {
         { name: "ISTIRAHAT", time: "11.55 – 12.25", teacher: "-" },
         { name: "B. INGGRIS", time: "12.25 – 14.45", teacher: "Bpk Hamdan Mu'akhor" }
       ],
-      picket: ["Alham Haikal", "Aurel Agri", "Bibit Adi", "M Razib", "M Rizki", "Nurshifa Amalia", "Rayhan Ambiya", "Salma Yuniar", "Muhani Khalifia"]
+      picket: ["Alham Haikal", "Aurel Agri", "Bibit Adi", "M Razib", "M Rizki", "Nurshifa Amalia", "Rayhan Ambiya", "Salma Yuniar", "Muhani Khalifia"],
+      reminders: []
     },
     { 
       day: "Selasa", 
-      uniform: "Baju Putih Abu (PAK SMK)",
+      uniform: "Baju Putih Abu (Atribut LENGKAP)",
       productiveSubjects: [
         { name: "MATA PELAJARAN B.SUNDA", time: "07.30 – 09.50", teacher: "Ibu Nuri Purnamasari" },
         { name: "ISTIRAHAT", time: "09.50 – 10.10", teacher: "-" },
@@ -43,12 +42,20 @@ const Schedule = () => {
         { name: "MATA PELAJARAN IPAS", time: "12.25 – 13.35", teacher: "Ibu Dina Ika Agustin" },
         { name: "MATA PELAJARAN DPK (2)", time: "13.35 – 14.45", teacher: "Bpk Cecep Supriatna" }
       ],
-      generalSubjects: [], // Belum ada data
-      picket: ["Annas Nasri", "Azmi Abdul", "Cakra Buana", "Deri Pasti", "Hasbi Nursyahputra", "Megha Indah", "Ayatul Husna", "Raya Aprilia"]
+      generalSubjects: [
+        { name: "WALI KELAS (PERWALIAN)", time: "07.30 – 08.05", teacher: "Ibu Resita" },
+        { name: "B. INGGRIS", time: "08.05 – 09.50", teacher: "Bpk Hamdan Mu'akhor" },
+        { name: "ISTIRAHAT", time: "09.50 – 10.10", teacher: "-" },
+        { name: "PENDIDIKAN AGAMA ISLAM", time: "10.10 – 11.55", teacher: "Bpk Aziz Alan Abdillah" },
+        { name: "ISTIRAHAT", time: "11.55 – 12.25", teacher: "-" },
+        { name: "B. INDONESIA", time: "12.25 – 14.45", teacher: "Ibu Irma Nur rohmah" }
+      ],
+      picket: ["Annas Nasri", "Azmi Abdul", "Cakra Buana", "Deri Pasti", "Hasbi Nursyahputra", "Megha Indah", "Ayatul Husna", "Raya Aprilia"],
+      reminders: []
     },
     { 
       day: "Rabu", 
-      uniform: "Baju Batik Smaknis",
+      uniform: "Baju Pramuka (+ Baju Olahraga)",
       productiveSubjects: [
         { name: "MATA PELAJARAN DPK", time: "07.30 – 09.50", teacher: "Bpk Ahmad Sirojudin" },
         { name: "ISTIRAHAT", time: "09.50 – 10.10", teacher: "-" },
@@ -57,8 +64,19 @@ const Schedule = () => {
         { name: "MATA PELAJARAN DPK", time: "12.25 – 13.00", teacher: "Bpk Ahmad Sirojudin" },
         { name: "MATA PELAJARAN DPK", time: "13.00 – 14.45", teacher: "Bpk Cecep Supriatna" }
       ],
-      generalSubjects: [],
-      picket: ["Galuh Ray", "Irfan Fermadi", "Dimas Alvino", "Fariz Alfauzi", "Rabli Azwar", "Melvina Yeiza", "Evander Yusup", "Salma Zulfa", "Shira Putryasni"]
+      generalSubjects: [
+        { name: "PJOK (TEORI)", time: "07.30 – 08.40", teacher: "Bpk Yodha Ruridiana" },
+        { name: "PJOK (PRAKTEK)", time: "08.40 – 09.50", teacher: "Bpk Yodha Ruridiana" },
+        { name: "ISTIRAHAT", time: "09.50 – 10.10", teacher: "-" },
+        { name: "MATEMATIKA", time: "10.10 – 11.55", teacher: "Bpk Nu'man" },
+        { name: "ISTIRAHAT", time: "11.55 – 12.25", teacher: "-" },
+        { name: "SENI BUDAYA", time: "12.25 – 14.45", teacher: "Bpk Cikal Gilang" }
+      ],
+      picket: ["Galuh Ray", "Irfan Fermadi", "Dimas Alvino", "Fariz Alfauzi", "Rabli Azwar", "Melvina Yeiza", "Evander Yusup", "Salma Zulfa", "Shira Putryasni"],
+      reminders: [
+        "Tugas B.Indonesia: Cerita Rakyat (Pengertian & Contoh Cerita).",
+        "Jangan lupa bawa baju olahraga!"
+      ]
     },
     { 
       day: "Kamis", 
@@ -71,7 +89,8 @@ const Schedule = () => {
         { name: "MATA PELAJARAN INF", time: "12.25 – 14.45", teacher: "Bpk Herher Abdul khohar" }
       ],
       generalSubjects: [],
-      picket: ["Raihan Alviansyah", "Wijaya Zainur", "Ardiansah", "Rasya Raditya", "Pahri Gilang", "Maulana", "Rindu Riayu", "Rista Amelia", "Siti Saripah"]
+      picket: ["Raihan Alviansyah", "Wijaya Zainur", "Ardiansah", "Rasya Raditya", "Pahri Gilang", "Maulana", "Rindu Riayu", "Rista Amelia", "Siti Saripah"],
+      reminders: []
     },
     { 
       day: "Jumat", 
@@ -84,15 +103,15 @@ const Schedule = () => {
         { name: "MATA PELAJARAN INF", time: "10.10 – 11.20", teacher: "Bpk Herher Abdul Khohar" }
       ],
       generalSubjects: [],
-      picket: ["Padil Nurjaman", "Zaky Pairus", "Zyldan Muzhaffar", "Rizkia Febryanti", "Intan Darmawan", "Zulpa Apriliani", "Galuh Raga", "Wolid Herdiansyah", "M Firman Supiani"]
+      picket: ["Padil Nurjaman", "Zaky Pairus", "Zyldan Muzhaffar", "Rizkia Febryanti", "Intan Darmawan", "Zulpa Apriliani", "Galuh Raga", "Wolid Herdiansyah", "M Firman Supiani"],
+      reminders: []
     },
   ];
 
-  // Set up intersection observer to detect active day on scroll
   useEffect(() => {
     const observerOptions = {
       root: scrollContainerRef.current,
-      threshold: 0.6, // Must be 60% visible to trigger
+      threshold: 0.6, 
     };
 
     const observerCallback = (entries: IntersectionObserverEntry[]) => {
@@ -241,7 +260,6 @@ const Schedule = () => {
                     {/* Subjects Column */}
                     <div className="lg:col-span-2">
                       
-                      {/* RENDER PRODUCTIVE SUBJECTS */}
                       {dayData.productiveSubjects.length > 0 && 
                         renderSubjectList(
                           dayData.productiveSubjects, 
@@ -251,7 +269,6 @@ const Schedule = () => {
                         )
                       }
 
-                      {/* RENDER GENERAL SUBJECTS (NEW) */}
                       {dayData.generalSubjects.length > 0 && 
                         renderSubjectList(
                           dayData.generalSubjects, 
@@ -273,7 +290,7 @@ const Schedule = () => {
                           <span className="text-xs font-black uppercase tracking-widest text-slate-900">Piket Squad</span>
                         </div>
 
-                        <div className="space-y-3">
+                        <div className="space-y-3 mb-8">
                           {dayData.picket.map((person, k) => (
                             <div key={k} className="flex items-center gap-3 group/piket p-1">
                               <div className="w-1.5 h-1.5 rounded-full bg-slate-300 group-hover/piket:bg-slate-900 transition-colors"></div>
@@ -282,7 +299,29 @@ const Schedule = () => {
                           ))}
                         </div>
 
-                        <div className="mt-10 p-5 bg-white/60 rounded-3xl border border-white">
+                        {/* Reminder Section */}
+                        {dayData.reminders && dayData.reminders.length > 0 && (
+                          <div className="mb-6 p-4 bg-amber-50 rounded-2xl border border-amber-100 relative overflow-hidden">
+                            <div className="flex items-center gap-2 mb-3">
+                               <AlertCircle size={14} className="text-amber-600" />
+                               <span className="text-[10px] font-black uppercase tracking-widest text-amber-800">Reminder</span>
+                            </div>
+                            <ul className="space-y-2 mb-4">
+                              {dayData.reminders.map((rem, rIdx) => (
+                                <li key={rIdx} className="text-[10px] font-medium text-slate-600 leading-relaxed pl-2 border-l-2 border-amber-200">
+                                  {rem}
+                                </li>
+                              ))}
+                            </ul>
+                            <div className="pt-3 border-t border-amber-200/50">
+                                <p className="text-[9px] text-amber-600/80 italic">
+                                   💡 Bingung tugasnya? Coba tanya <span className="font-bold">Hzell Virtual</span>.
+                                </p>
+                             </div>
+                          </div>
+                        )}
+
+                        <div className="p-5 bg-white/60 rounded-3xl border border-white">
                           <div className="flex items-center gap-2 mb-2 text-slate-900">
                             <UserCheck size={14} />
                             <span className="text-[10px] font-black uppercase tracking-widest">Tugas Utama</span>

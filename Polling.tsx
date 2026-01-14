@@ -123,9 +123,9 @@ const Polling: React.FC<PollingProps> = ({ user }) => {
   };
 
   const handleVote = async (poll: Poll, optionId: number) => {
-    // Logic: Jika User Biasa dan sudah vote, tolak.
-    // Jika Admin, BOLEH vote berkali-kali (Unlimited Like System).
-    if (!user.isAdmin && poll.votedBy.includes(user.name)) {
+    // FITUR UNLIMITED VOTE ADMIN DINONAKTIFKAN SEMENTARA
+    // Sekarang Admin juga dicek apakah sudah vote
+    if (poll.votedBy.includes(user.name)) {
       alert("Kamu sudah memilih di polling ini!");
       return;
     }
@@ -140,7 +140,6 @@ const Polling: React.FC<PollingProps> = ({ user }) => {
     const pollRef = doc(db, "polls", poll.id);
     
     // Update data
-    // Admin tetap ditambahkan ke votedBy agar tercatat 'bersuara', tapi tidak diblokir
     await updateDoc(pollRef, {
       options: updatedOptions,
       votedBy: arrayUnion(user.name) 
@@ -250,8 +249,8 @@ const Polling: React.FC<PollingProps> = ({ user }) => {
               const totalVotes = poll.options.reduce((acc, curr) => acc + curr.votes, 0);
               const hasVoted = poll.votedBy.includes(user.name);
               
-              // Admin selalu melihat tampilan voting (agar bisa spam vote), User biasa melihat hasil jika sudah vote
-              const showResultView = hasVoted && !user.isAdmin;
+              // TAMPILKAN HASIL JIKA SUDAH VOTE (ADMIN PUN DIPERLAKUKAN SAMA SEMENTARA)
+              const showResultView = hasVoted;
 
               return (
                 <div key={poll.id} className="glass rounded-[3rem] p-8 md:p-10 shadow-xl border-white/60 relative group animate-in slide-in-from-bottom duration-500">
@@ -266,11 +265,6 @@ const Polling: React.FC<PollingProps> = ({ user }) => {
                         <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1">
                           <Users size={12} /> {totalVotes} Suara
                         </span>
-                        {user.isAdmin && (
-                          <span className="flex items-center gap-1 text-[9px] font-bold text-emerald-600 uppercase tracking-widest bg-emerald-50 px-2 py-0.5 rounded-full">
-                            <Zap size={10} className="fill-emerald-600" /> Admin Mode: Unlimited Vote
-                          </span>
-                        )}
                       </div>
                       <h3 className="font-artist text-2xl md:text-4xl font-black text-slate-900 leading-tight">
                         {poll.question}
@@ -299,7 +293,7 @@ const Polling: React.FC<PollingProps> = ({ user }) => {
                       return (
                         <div key={option.id} className="relative">
                           {showResultView ? (
-                            // RESULT VIEW (User Biasa Sudah Vote)
+                            // RESULT VIEW (User / Admin yang sudah vote)
                             <div className="relative h-14 w-full bg-slate-50 rounded-2xl overflow-hidden border border-slate-100">
                               <div 
                                 className="absolute top-0 left-0 h-full bg-slate-900/5 transition-all duration-1000 ease-out flex items-center"
@@ -317,28 +311,16 @@ const Polling: React.FC<PollingProps> = ({ user }) => {
                               </div>
                             </div>
                           ) : (
-                            // VOTING VIEW (Admin / Belum Vote)
+                            // VOTING VIEW (Belum Vote)
                             <button
                               onClick={() => handleVote(poll, option.id)}
-                              className={`w-full text-left px-6 py-4 rounded-2xl border transition-all duration-200 shadow-sm group/btn relative overflow-hidden ${user.isAdmin ? 'bg-slate-50 border-slate-200 hover:bg-white hover:border-blue-400 hover:shadow-md' : 'bg-white border-slate-200 hover:border-slate-900 hover:bg-slate-50'}`}
+                              className={`w-full text-left px-6 py-4 rounded-2xl border transition-all duration-200 shadow-sm group/btn relative overflow-hidden bg-white border-slate-200 hover:border-slate-900 hover:bg-slate-50`}
                             >
-                              {/* Background Bar for Admin Visual Feedback */}
-                              {user.isAdmin && (
-                                <div 
-                                  className="absolute top-0 left-0 h-full bg-emerald-500/5 transition-all duration-500"
-                                  style={{ width: `${percentage}%` }}
-                                ></div>
-                              )}
-
                               <div className="relative z-10 flex justify-between items-center">
                                 <span className="font-bold text-slate-700 group-hover/btn:text-slate-900 transition-colors">{option.text}</span>
                                 <div className="flex items-center gap-3">
-                                  {/* Admin melihat jumlah vote saat ini di tombol */}
-                                  {user.isAdmin && (
-                                    <span className="text-[10px] font-black text-slate-400 bg-white/50 px-2 rounded-full">{option.votes} Suara</span>
-                                  )}
                                   <div className="w-6 h-6 rounded-full border-2 border-slate-200 group-hover/btn:border-slate-900 flex items-center justify-center">
-                                    <div className={`w-2.5 h-2.5 rounded-full bg-slate-900 transition-opacity ${user.isAdmin ? 'opacity-100 scale-75' : 'opacity-0 group-hover/btn:opacity-100'}`}></div>
+                                    <div className={`w-2.5 h-2.5 rounded-full bg-slate-900 transition-opacity opacity-0 group-hover/btn:opacity-100`}></div>
                                   </div>
                                 </div>
                               </div>
@@ -349,7 +331,7 @@ const Polling: React.FC<PollingProps> = ({ user }) => {
                     })}
                   </div>
 
-                  {hasVoted && !user.isAdmin && (
+                  {hasVoted && (
                     <div className="mt-6 text-center animate-in fade-in zoom-in duration-500">
                       <span className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-emerald-600 bg-emerald-50 px-4 py-2 rounded-full border border-emerald-100">
                         <CheckCircle2 size={12} /> Terima kasih atas suaramu!
@@ -357,12 +339,6 @@ const Polling: React.FC<PollingProps> = ({ user }) => {
                     </div>
                   )}
                   
-                  {user.isAdmin && (
-                    <div className="mt-6 text-center">
-                       <p className="text-[9px] font-black uppercase tracking-widest text-slate-300">Admin Mode Active — Tekan opsi untuk menambah suara</p>
-                    </div>
-                  )}
-
                 </div>
               );
             })

@@ -1,12 +1,24 @@
 
 import React, { useState, useRef } from 'react';
-import { User, School, ArrowRight, CheckCircle2, ShieldCheck, Lock, Camera, ImagePlus } from 'lucide-react';
+import { User, School, ArrowRight, CheckCircle2, ShieldCheck, Lock, Sparkles, X, Grid } from 'lucide-react';
 import { db } from './firebase';
 import { collection, addDoc, serverTimestamp, setDoc, doc } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
 interface LoginProps {
   onLogin: (userData: { name: string; classMajor: string; isAdmin: boolean; photo?: string }) => void;
 }
+
+const AVATARS = [
+  "https://img.sanishtech.com/u/9ccea957849bb7793480e98a39f3c0c9.jpg",
+  "https://img.sanishtech.com/u/a8715b0203becd730da838f2a29512e5.jpg",
+  "https://img.sanishtech.com/u/1fc38868e47381608e77290305c4ea85.jpg",
+  "https://img.sanishtech.com/u/b6bbe3fe81124325572b15cc11552700.jpg",
+  "https://img.sanishtech.com/u/fcf2603aaff914b3c1edf19dfdd9c778.jpg",
+  "https://img.sanishtech.com/u/9ad6340a9f401792f3d8bc85f5d788cd.jpg",
+  "https://img.sanishtech.com/u/4775236e062447d43b5cb56361fc1159.jpg",
+  "https://img.sanishtech.com/u/0f1a2324bf297cf99e45fd402df48465.jpg",
+  "https://img.sanishtech.com/u/7376f9dec64c42a53e23cac6b8bcfa16.jpg"
+];
 
 const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const [name, setName] = useState('');
@@ -16,10 +28,10 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const [slideComplete, setSlideComplete] = useState(false);
   const [showNotification, setShowNotification] = useState(false);
   const [photo, setPhoto] = useState<string | null>(null);
+  const [showAvatarModal, setShowAvatarModal] = useState(false);
   
   const sliderRef = useRef<HTMLDivElement>(null);
   const handleRef = useRef<HTMLDivElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const SECRET_ADMIN_CODE = "TJKTAUTH0808";
 
@@ -41,21 +53,6 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     else if (ua.indexOf("like Mac") !== -1) os = "iOS";
 
     return { type: deviceType, os: os };
-  };
-
-  const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 2 * 1024 * 1024) {
-        alert("Ukuran foto maksimal 2MB ya!");
-        return;
-      }
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPhoto(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
   };
 
   const handleSlide = (e: React.MouseEvent | React.TouchEvent) => {
@@ -107,16 +104,15 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     
     try {
       // 1. Simpan Data Login untuk History & Notifikasi
-      // Menggunakan ID yang unik berdasarkan nama agar kita bisa update status 'online' nya nanti
       const userId = name.toLowerCase().replace(/\s+/g, '_');
       
       await setDoc(doc(db, "user_logins", userId), {
         name,
         classMajor,
         timestamp: serverTimestamp(),
-        lastActive: serverTimestamp(), // Untuk fitur Online/Offline
+        lastActive: serverTimestamp(), 
         isAdmin: isAdmin,
-        photo: photo || null, // Simpan foto di data login juga
+        photo: photo || null,
         deviceType: deviceInfo.type,
         deviceOS: deviceInfo.os,
         fullUserAgent: navigator.userAgent,
@@ -129,7 +125,6 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
     setShowNotification(true);
     setTimeout(() => {
-      // Kirim data lengkap termasuk foto ke App
       onLogin({ name, classMajor, isAdmin, photo: photo || undefined });
     }, 2000);
   };
@@ -143,35 +138,28 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
       <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-50 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-pulse delay-700"></div>
 
       {/* Login Card */}
-      <div className="w-full max-w-md glass rounded-[3rem] p-8 md:p-10 shadow-2xl relative animate-in fade-in zoom-in duration-700 max-h-[90vh] overflow-y-auto no-scrollbar">
+      <div className="w-full max-w-md glass rounded-[3rem] p-8 md:p-10 shadow-2xl relative animate-in fade-in zoom-in duration-700 max-h-[90vh] overflow-y-auto no-scrollbar z-10">
         <div className="text-center mb-6">
           <span className="font-handwriting text-3xl text-slate-400 block mb-1">Setup Your Profile</span>
           <h1 className="font-artist text-3xl font-bold text-slate-900 tracking-tight">X TJKT TWO</h1>
         </div>
 
-        {/* PHOTO UPLOAD CIRCLE */}
+        {/* PHOTO SELECTION CIRCLE */}
         <div className="flex justify-center mb-8">
-          <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+          <div className="relative group cursor-pointer" onClick={() => setShowAvatarModal(true)}>
             <div className={`w-32 h-32 rounded-full overflow-hidden border-4 shadow-xl transition-all duration-300 ${photo ? 'border-slate-900' : 'border-dashed border-slate-300 bg-slate-50'}`}>
               {photo ? (
-                <img src={photo} alt="Preview" className="w-full h-full object-cover" />
+                <img src={photo} alt="Selected Avatar" className="w-full h-full object-cover" />
               ) : (
-                <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 gap-2">
-                  <ImagePlus size={32} />
-                  <span className="text-[9px] font-black uppercase tracking-widest">Upload Foto</span>
+                <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 gap-2 hover:bg-slate-100 transition-colors">
+                  <Sparkles size={32} className="text-blue-400" />
+                  <span className="text-[9px] font-black uppercase tracking-widest text-center px-4">Pilih Avatar</span>
                 </div>
               )}
             </div>
             <div className="absolute bottom-0 right-0 p-2 bg-slate-900 text-white rounded-full shadow-lg group-hover:scale-110 transition-transform">
-              <Camera size={16} />
+              <Grid size={16} />
             </div>
-            <input 
-              type="file" 
-              ref={fileInputRef} 
-              className="hidden" 
-              accept="image/*" 
-              onChange={handlePhotoSelect} 
-            />
           </div>
         </div>
 
@@ -247,9 +235,48 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
         </div>
       </div>
 
+      {/* AVATAR SELECTOR MODAL */}
+      {showAvatarModal && (
+        <div className="fixed inset-0 z-[120] bg-slate-900/80 backdrop-blur-md flex items-center justify-center p-6 animate-in fade-in duration-300">
+          <div className="w-full max-w-lg bg-clean rounded-[3rem] p-8 shadow-3xl relative overflow-hidden animate-in zoom-in-95 duration-300 border-4 border-white">
+            <button 
+              onClick={() => setShowAvatarModal(false)}
+              className="absolute top-6 right-6 p-2 bg-slate-200 rounded-full hover:bg-red-500 hover:text-white transition-colors"
+            >
+              <X size={20} />
+            </button>
+            
+            <div className="text-center mb-8">
+              <h3 className="font-artist text-3xl font-bold text-slate-900">Pilih Karaktermu</h3>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mt-2">Tentukan vibe kamu hari ini!</p>
+            </div>
+
+            <div className="grid grid-cols-3 gap-4 max-h-[50vh] overflow-y-auto no-scrollbar p-2">
+              {AVATARS.map((avatarUrl, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => {
+                    setPhoto(avatarUrl);
+                    setShowAvatarModal(false);
+                  }}
+                  className={`relative group aspect-square rounded-2xl overflow-hidden border-2 transition-all duration-300 hover:scale-105 ${photo === avatarUrl ? 'border-emerald-500 ring-4 ring-emerald-500/20' : 'border-slate-200 hover:border-slate-900'}`}
+                >
+                  <img src={avatarUrl} alt={`Avatar ${idx + 1}`} className="w-full h-full object-cover" />
+                  {photo === avatarUrl && (
+                    <div className="absolute inset-0 bg-emerald-500/20 flex items-center justify-center">
+                      <CheckCircle2 size={24} className="text-emerald-500 drop-shadow-md bg-white rounded-full" />
+                    </div>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Success Notification */}
       {showNotification && (
-        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-8 py-4 rounded-full flex items-center gap-4 animate-in slide-in-from-bottom-10 fade-in duration-500 shadow-2xl z-[110]">
+        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-8 py-4 rounded-full flex items-center gap-4 animate-in slide-in-from-bottom-10 fade-in duration-500 shadow-2xl z-[130]">
           <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-white">
              {photo ? <img src={photo} alt="Me" className="w-full h-full object-cover" /> : <User size={20} className="m-auto mt-2" />}
           </div>
