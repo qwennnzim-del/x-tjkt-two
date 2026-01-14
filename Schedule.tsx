@@ -88,9 +88,18 @@ const Schedule = () => {
         { name: "ISTIRAHAT", time: "11.55 – 12.25", teacher: "-" },
         { name: "MATA PELAJARAN INF", time: "12.25 – 14.45", teacher: "Bpk Herher Abdul khohar" }
       ],
-      generalSubjects: [],
-      picket: ["Raihan Alviansyah", "Wijaya Zainur", "Ardiansah", "Rasya Raditya", "Pahri Gilang", "Maulana", "Rindu Riayu", "Rista Amelia", "Siti Saripah"],
-      reminders: []
+      generalSubjects: [
+        { name: "B. INDONESIA", time: "07.30 – 09.50", teacher: "Ibu Irma Nur Rohman" },
+        { name: "ISTIRAHAT", time: "09.50 – 10.10", teacher: "-" },
+        { name: "MATEMATIKA", time: "10.10 – 11.55", teacher: "Bpk Nu'man" },
+        { name: "ISTIRAHAT", time: "11.55 – 12.25", teacher: "-" },
+        { name: "SEJARAH", time: "12.25 – 14.45", teacher: "Ibu Ati Rohayati" }
+      ],
+      picket: ["Raihan Alviansyah", "Wijaya Zainur", "Rasya Raditya", "Pahri Gilang", "Maulana", "Rindu Riayu", "Rista Amelia", "Siti Saripah", "Firman Supiani"],
+      reminders: [
+        "TUGAS SENI: Menuliskan aktor.",
+        "TUGAS MATEMATIKA: Menghafalkan rumus trigonometris."
+      ]
     },
     { 
       day: "Jumat", 
