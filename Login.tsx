@@ -1,8 +1,8 @@
 
 import React, { useState, useRef } from 'react';
-import { User, School, ArrowRight, CheckCircle2, ShieldCheck, Lock, Sparkles, X, Grid } from 'lucide-react';
+import { User, School, ArrowRight, CheckCircle2, ShieldCheck, Lock, Sparkles, X, Grid, Loader2 } from 'lucide-react';
 import { db } from './firebase';
-import { collection, addDoc, serverTimestamp, setDoc, doc } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+import { collection, serverTimestamp, setDoc, doc, runTransaction } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
 interface LoginProps {
   onLogin: (userData: { name: string; classMajor: string; isAdmin: boolean; photo?: string }) => void;
@@ -29,6 +29,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const [showNotification, setShowNotification] = useState(false);
   const [photo, setPhoto] = useState<string | null>(null);
   const [showAvatarModal, setShowAvatarModal] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   
   const sliderRef = useRef<HTMLDivElement>(null);
   const handleRef = useRef<HTMLDivElement>(null);
@@ -56,7 +57,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   };
 
   const handleSlide = (e: React.MouseEvent | React.TouchEvent) => {
-    if (slideComplete || !name || !classMajor) return;
+    if (slideComplete || !name || !classMajor || isProcessing) return;
     
     const slider = sliderRef.current;
     const handle = handleRef.current;
@@ -98,8 +99,66 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     window.addEventListener('touchend', cleanup);
   };
 
+  // --- HIGH SECURITY CHECK ---
+  const checkAndConsumeAdminQuota = async (): Promise<boolean> => {
+    const configRef = doc(db, "app_settings", "admin_quota");
+
+    try {
+      await runTransaction(db, async (transaction) => {
+        const sfDoc = await transaction.get(configRef);
+        
+        // Logika: 
+        // Jika dokumen belum ada, kita asumsikan 1 pemakaian sudah terjadi (History User).
+        // Jadi currentUsage default = 1.
+        let currentUsage = 1;
+
+        if (sfDoc.exists()) {
+          const data = sfDoc.data();
+          // Jika ada data, gunakan data tersebut. 
+          currentUsage = data.usage !== undefined ? data.usage : 1;
+        }
+
+        // Batas Maksimal = 2
+        if (currentUsage >= 2) {
+          throw "LIMIT_REACHED";
+        }
+
+        // Increment Usage
+        transaction.set(configRef, { usage: currentUsage + 1 }, { merge: true });
+      });
+      return true; // Sukses, kuota masih ada
+    } catch (e) {
+      if (e === "LIMIT_REACHED") return false; // Gagal, kuota habis
+      console.error("Admin verification error:", e);
+      return false; // Fail safe
+    }
+  };
+
   const triggerLogin = async () => {
-    const isAdmin = adminCode === SECRET_ADMIN_CODE;
+    setIsProcessing(true);
+    let isAdmin = false;
+
+    // Jika user mencoba login sebagai admin
+    if (showAdminField && adminCode.length > 0) {
+      if (adminCode === SECRET_ADMIN_CODE) {
+        // Cek Kuota di Database
+        const accessGranted = await checkAndConsumeAdminQuota();
+        
+        if (!accessGranted) {
+          alert("Kode telah dibatas oleh hezell");
+          setSlideComplete(false);
+          setIsProcessing(false);
+          // Reset slider visuals
+          if (handleRef.current) {
+            handleRef.current.style.transform = 'translateX(0px)';
+          }
+          return; // Stop login process
+        }
+        
+        isAdmin = true;
+      }
+    }
+    
     const deviceInfo = getDeviceDetails();
     
     try {
@@ -213,7 +272,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
         {/* Custom Slider Confirmation */}
         <div className="mt-8">
           <p className="text-center text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-4">
-            {!isFormValid ? 'Lengkapi Nama & Kelas' : slideComplete ? (adminCode === SECRET_ADMIN_CODE ? 'Admin Access Granted!' : 'Profile Ready!') : 'Geser untuk Gabung'}
+            {!isFormValid ? 'Lengkapi Nama & Kelas' : slideComplete ? (isProcessing ? 'Verifying...' : 'Access Granted!') : 'Geser untuk Gabung'}
           </p>
           
           <div 
@@ -226,7 +285,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
               onTouchStart={handleSlide}
               className={`absolute top-1 bottom-1 left-1 aspect-square rounded-full flex items-center justify-center transition-colors shadow-lg z-10 ${slideComplete ? 'bg-emerald-500 text-white' : 'bg-white text-slate-900 hover:bg-slate-50'}`}
             >
-              {slideComplete ? <CheckCircle2 size={24} /> : <ArrowRight size={24} />}
+              {isProcessing ? <Loader2 size={24} className="animate-spin" /> : slideComplete ? <CheckCircle2 size={24} /> : <ArrowRight size={24} />}
             </div>
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                <span className="text-xs font-bold text-slate-500 tracking-[0.2em] uppercase transition-opacity duration-300" style={{ opacity: slideComplete ? 0 : 1 }}>Slide to Join</span>
