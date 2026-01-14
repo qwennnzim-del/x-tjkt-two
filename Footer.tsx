@@ -68,7 +68,7 @@ const Footer = () => {
         <div className="pt-10 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center gap-6">
           <span className="font-artist text-xl tracking-tighter opacity-50">X TJKT TWO</span>
           <p className="text-slate-500 text-xs font-light tracking-widest uppercase">
-            © {new Date().getFullYear()} — Zent Tech.
+            © {new Date().getFullYear()} — Hezell Inc.
           </p>
         </div>
       </div>
