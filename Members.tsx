@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
-import { Users, ChevronDown, ChevronUp, Star, ShieldCheck, Code, Layout, Palette, Award } from 'lucide-react';
+import { Users, ChevronDown, ChevronUp, Star, ShieldCheck, Code, Layout, Palette, Award, Heart, Sparkles, X, Loader2 } from 'lucide-react';
 
 interface Member {
   name: string;
@@ -8,8 +8,15 @@ interface Member {
   priority: number;
 }
 
-const Members = () => {
+interface MembersProps {
+  currentUser?: string;
+}
+
+const Members: React.FC<MembersProps> = ({ currentUser }) => {
   const [showAll, setShowAll] = useState(false);
+  const [selectedMember, setSelectedMember] = useState<Member | null>(null);
+  const [isCalculating, setIsCalculating] = useState(false);
+  const [chemistryResult, setChemistryResult] = useState<number | null>(null);
 
   const rawMembers: Member[] = [
     { name: "IBU RESITA", role: "Wali Kelas", priority: 0 },
@@ -39,9 +46,9 @@ const Members = () => {
     { name: "M. PADIL NURJAMAN", role: "Member", priority: 6 },
     { name: "Megha Indah Ramdani", role: "Member", priority: 6 },
     { name: "MOH BILAL NURULFATA", role: "Member", priority: 6 },
-    { name: "MUHAMAD FIRMAN SUPIANI", role: "Member", priority: 6 },
-    { name: "MUHAMAD MAULANA", role: "Member", priority: 6 },
-    { name: "MUHAMAD WIJAYA ZAINUR RAHMAN", role: "Member", priority: 6 },
+    { name: "MUHAMMAD FIRMAN SUPIANI", role: "Member", priority: 6 },
+    { name: "MUHAMMAD MAULANA", role: "Member", priority: 6 },
+    { name: "MUHAMMAD WIJAYA ZAINUR RAHMAN", role: "Member", priority: 6 },
     { name: "Muhamad Zaky Pairus", role: "Member", priority: 6 },
     { name: "MUHAMMAD RASYA RADITYA SWARNA", role: "Member", priority: 6 },
     { name: "MUHAMMAD REIHAN ALPIANSYAH", role: "Member", priority: 6 },
@@ -97,6 +104,41 @@ const Members = () => {
     }
   };
 
+  // --- CHEMISTRY LOGIC ---
+  const calculateChemistry = (member: Member) => {
+    if (!currentUser) return;
+    
+    // Jangan izinkan cek diri sendiri
+    if (member.name.toLowerCase() === currentUser.toLowerCase()) {
+        alert("Cek diri sendiri? Narsis banget lu! 😂");
+        return;
+    }
+
+    setIsCalculating(true);
+    setChemistryResult(null);
+
+    // Algoritma Hash Sederhana agar hasil KONSISTEN (tidak random setiap klik)
+    const combinedNames = [currentUser.toLowerCase(), member.name.toLowerCase()].sort().join('');
+    let hash = 0;
+    for (let i = 0; i < combinedNames.length; i++) {
+        hash = combinedNames.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const percentage = Math.abs(hash % 101); // 0 - 100
+
+    setTimeout(() => {
+        setChemistryResult(percentage);
+        setIsCalculating(false);
+    }, 2000);
+  };
+
+  const getChemistryStatus = (score: number) => {
+      if (score >= 90) return "JODOH DUNIA AKHIRAT 😍";
+      if (score >= 70) return "Bestie Sejati ✨";
+      if (score >= 50) return "Teman Tapi Mesra? 🤔";
+      if (score >= 30) return "Cuma Teman Tugas 📚";
+      return "Jangan Berharap Deh 💀";
+  };
+
   return (
     <section className="py-24 pt-32 bg-clean min-h-screen relative overflow-hidden">
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-50/20 rounded-full filter blur-[120px] pointer-events-none -z-10"></div>
@@ -127,11 +169,19 @@ const Members = () => {
             {displayedMembers.map((member, i) => (
               <div 
                 key={i} 
-                className="group animate-in fade-in zoom-in duration-500"
+                className="group animate-in fade-in zoom-in duration-500 cursor-pointer"
                 style={{ animationDelay: `${(i % 12) * 40}ms` }}
+                onClick={() => {
+                    setSelectedMember(member);
+                    setChemistryResult(null);
+                }}
               >
                 <div className={`glass rounded-[2rem] p-5 sm:p-6 h-full flex flex-col transition-all duration-500 hover:-translate-y-2 group-hover:shadow-2xl group-hover:bg-white border-white/40 ${member.priority === 0 ? 'ring-2 ring-amber-200 bg-amber-50/40' : ''}`}>
-                  <div className={`aspect-square rounded-3xl bg-gradient-to-br ${getGradient(member.priority)} flex items-center justify-center text-2xl sm:text-3xl font-artist font-black mb-5 shadow-inner transition-transform duration-700 group-hover:scale-95`}>
+                  <div className={`aspect-square rounded-3xl bg-gradient-to-br ${getGradient(member.priority)} flex items-center justify-center text-2xl sm:text-3xl font-artist font-black mb-5 shadow-inner transition-transform duration-700 group-hover:scale-95 relative overflow-hidden`}>
+                     {/* Hover Effect Hint */}
+                     <div className="absolute inset-0 bg-slate-900/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <span className="text-[8px] font-black uppercase tracking-widest bg-white px-2 py-1 rounded-full text-slate-900">Tap Me</span>
+                     </div>
                     {getInitials(member.name)}
                   </div>
                   
@@ -178,6 +228,60 @@ const Members = () => {
           )}
         </div>
       </div>
+
+      {/* CHEMISTRY MODAL */}
+      {selectedMember && (
+          <div className="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-6 animate-in fade-in duration-300">
+              <div className="w-full max-w-sm bg-white rounded-[3rem] p-8 shadow-2xl relative animate-in zoom-in-95 duration-300">
+                  <button 
+                    onClick={() => setSelectedMember(null)}
+                    className="absolute top-6 right-6 p-2 bg-slate-100 rounded-full hover:bg-slate-200 transition-colors"
+                  >
+                      <X size={20} />
+                  </button>
+
+                  <div className="text-center">
+                      <div className="w-20 h-20 mx-auto bg-slate-900 text-white rounded-3xl flex items-center justify-center text-3xl font-artist font-black mb-6 shadow-xl transform rotate-3">
+                          {getInitials(selectedMember.name)}
+                      </div>
+                      <h3 className="font-artist text-2xl font-black text-slate-900 uppercase leading-none mb-1">{selectedMember.name}</h3>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-8">{selectedMember.role}</p>
+
+                      {!chemistryResult && !isCalculating ? (
+                          <div className="space-y-4">
+                              <p className="text-sm text-slate-500 font-medium">Penasaran seberapa cocok kamu sama dia?</p>
+                              <button 
+                                onClick={() => calculateChemistry(selectedMember)}
+                                className="w-full py-4 bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-2xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:scale-105 transition-transform shadow-lg shadow-pink-200"
+                              >
+                                  <Heart size={16} className="fill-white animate-pulse" />
+                                  Cek Chemistry
+                              </button>
+                          </div>
+                      ) : isCalculating ? (
+                          <div className="py-8 flex flex-col items-center gap-4">
+                              <Loader2 size={32} className="text-pink-500 animate-spin" />
+                              <p className="text-[10px] font-black uppercase tracking-widest text-pink-400 animate-pulse">Menghitung detak jantung...</p>
+                          </div>
+                      ) : (
+                          <div className="animate-in zoom-in duration-500">
+                              <div className="relative w-32 h-32 mx-auto mb-6 flex items-center justify-center">
+                                  <svg className="absolute inset-0 w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                                      <path className="text-slate-100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" strokeWidth="3" />
+                                      <path className="text-pink-500" strokeDasharray={`${chemistryResult}, 100`} d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+                                  </svg>
+                                  <div className="text-center">
+                                      <span className="text-3xl font-black font-artist text-slate-900 block">{chemistryResult}%</span>
+                                  </div>
+                              </div>
+                              <h4 className="font-artist text-xl font-bold text-pink-600 mb-2">{getChemistryStatus(chemistryResult || 0)}</h4>
+                              <p className="text-[10px] text-slate-400 uppercase tracking-widest font-bold">Hasil prediksi Hzell AI</p>
+                          </div>
+                      )}
+                  </div>
+              </div>
+          </div>
+      )}
     </section>
   );
 };

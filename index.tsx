@@ -18,6 +18,7 @@ import ChatAssistant from './ChatAssistant';
 import Quiz from './Quiz'; 
 import Leaderboard from './Leaderboard'; 
 import GroupGenerator from './GroupGenerator';
+import Cursor from './Cursor'; // IMPORT CURSOR
 import { db } from './firebase';
 import { doc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
@@ -152,11 +153,12 @@ const App = () => {
 
   const renderPage = () => {
     if (!user) return <Login onLogin={handleLogin} />;
+    // Pass user data to Members for the Chemistry feature
     switch (currentPage) {
       case 'home': return <Home onExplore={setCurrentPage} user={user} />;
       case 'about': return <About isAdmin={user.isAdmin} />;
       case 'cinema': return <Cinema isAdmin={user.isAdmin} />;
-      case 'members': return <Members />;
+      case 'members': return <Members currentUser={user.name} />; // PASS CURRENT USER NAME
       case 'schedule': return <Schedule />;
       case 'profile': return <Profile user={user} onUpdate={handleUpdateProfile} />;
       case 'wall': return <GlobalWall user={user} />;
@@ -175,7 +177,10 @@ const App = () => {
   );
 
   return (
-    <div className="bg-clean min-h-screen selection:bg-slate-900 selection:text-white relative">
+    <div className="bg-clean min-h-screen selection:bg-slate-900 selection:text-white relative cursor-none lg:cursor-auto">
+      {/* Tambahkan Custom Cursor */}
+      <Cursor />
+      
       <div className="fixed inset-0 pointer-events-none opacity-[0.04] z-[9999] bg-[url('https://grainy-gradients.vercel.app/noise.svg')]"></div>
       <div className="fixed top-0 left-0 w-full h-full pointer-events-none z-[9998] bg-gradient-to-tr from-blue-50/10 via-transparent to-purple-50/10"></div>
       {showTour && <FeatureTour onComplete={completeTour} />}
