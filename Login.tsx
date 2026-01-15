@@ -31,6 +31,11 @@ const CIANJUR_SCHOOLS = [
 const AVATARS = [
   // 1. FOTO CUSTOM USER (Prioritas Utama)
   "https://img.sanishtech.com/u/2a6115aa5eb5ea3595ac4bc0d4519179.jpg",
+  "https://img.sanishtech.com/u/3d1f4fd033c3b0634c4ae44d41ff0639.jpg",
+  "https://img.sanishtech.com/u/db15721ab0a8f37db6160f87eb3af40f.jpg",
+  "https://img.sanishtech.com/u/5fc118cbd7ed0a5cb60e0ee59b25fff5.jpg",
+  "https://img.sanishtech.com/u/83ae9abb5e8ec549b59c6c200ecb4667.jpg",
+  "https://img.sanishtech.com/u/3c228ae1dc18de1e4d77b67552d6a825.jpg",
 
   // 2. Cowok Sketsa Cool
   "https://api.dicebear.com/9.x/notionists/svg?seed=Felix&backgroundColor=e5e7eb",

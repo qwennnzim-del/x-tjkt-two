@@ -9,8 +9,8 @@ import {
   ShieldAlert,
   User as UserIcon,
   CheckCircle2,
-  Edit2,
-  Film
+  Play,
+  ArrowDownRight
 } from 'lucide-react';
 
 interface HomeProps {
@@ -25,22 +25,19 @@ interface HomeProps {
 const Home: React.FC<HomeProps> = ({ onExplore, user }) => {
   const skills = [
     {
-      title: "Web Development",
-      desc: "Membangun antarmuka yang modern dan fungsional.",
-      icon: <Code size={24} />,
-      color: "bg-blue-50 text-blue-600"
+      title: "Engineering",
+      desc: "Network & Infrastructure",
+      icon: <Network size={20} />,
     },
     {
-      title: "Network Engineer",
-      desc: "Ahli infrastruktur digital dan konektivitas.",
-      icon: <Network size={24} />,
-      color: "bg-purple-50 text-purple-600"
+      title: "Development",
+      desc: "Web & System Apps",
+      icon: <Code size={20} />,
     },
     {
-      title: "Cyber Security",
-      desc: "Menjaga keamanan data dari ancaman digital.",
-      icon: <ShieldCheck size={24} />,
-      color: "bg-emerald-50 text-emerald-600"
+      title: "Security",
+      desc: "Cyber Protection",
+      icon: <ShieldCheck size={20} />,
     }
   ];
 
@@ -48,82 +45,110 @@ const Home: React.FC<HomeProps> = ({ onExplore, user }) => {
 
   return (
     <section className="min-h-screen bg-clean relative overflow-hidden flex flex-col">
-      <div className="flex-grow flex flex-col items-center justify-center relative pt-24 pb-12 px-6">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] pointer-events-none opacity-40">
-           <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-blue-100 rounded-full blur-[100px] animate-pulse"></div>
-           <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-purple-100 rounded-full blur-[100px] animate-pulse delay-1000"></div>
-        </div>
+      {/* Abstract Background Shapes (More Organic) */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
+        <div className="absolute top-[-10%] right-[-5%] w-[40vw] h-[40vw] bg-gradient-to-br from-blue-100/40 to-purple-100/40 rounded-full blur-[80px] animate-float opacity-60"></div>
+        <div className="absolute bottom-[-10%] left-[-10%] w-[50vw] h-[50vw] bg-gradient-to-tr from-emerald-50/40 to-teal-100/40 rounded-full blur-[100px] animate-float opacity-60" style={{ animationDelay: '2s' }}></div>
+      </div>
+
+      <div className="flex-grow flex flex-col justify-center relative pt-28 pb-12 px-6 z-10">
         
-        <div className="container mx-auto text-center z-10">
-          <div className="flex flex-col items-center mb-8 animate-in fade-in slide-in-from-top duration-700">
-            <button 
-              onClick={() => onExplore('profile')}
-              className="w-24 h-24 rounded-full p-1 bg-gradient-to-tr from-blue-500 to-purple-500 mb-4 shadow-2xl hover:scale-105 transition-transform"
-            >
-              <div className="w-full h-full rounded-full overflow-hidden bg-white border-4 border-white">
-                {user.photo ? (
-                  <img 
-                    src={user.photo} 
-                    alt="Me" 
-                    className="w-full h-full object-cover" 
-                    referrerPolicy="no-referrer"
-                    onError={(e) => {
-                      e.currentTarget.src = `https://api.dicebear.com/9.x/initials/svg?seed=${user.name}`;
-                    }}
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-slate-300">
-                    <UserIcon size={32} />
+        {/* RUNNING TEXT BACKGROUND (Editorial Vibe) */}
+        <div className="absolute top-1/2 left-0 -translate-y-1/2 w-full opacity-[0.03] pointer-events-none select-none overflow-hidden whitespace-nowrap">
+           <div className="animate-marquee inline-block">
+              <span className="text-[12rem] font-black font-artist uppercase mr-20">We Are The Future</span>
+              <span className="text-[12rem] font-black font-artist uppercase mr-20">Network Engineer</span>
+              <span className="text-[12rem] font-black font-artist uppercase mr-20">X TJKT TWO</span>
+           </div>
+           <div className="animate-marquee inline-block absolute top-0 left-full">
+              <span className="text-[12rem] font-black font-artist uppercase mr-20">We Are The Future</span>
+              <span className="text-[12rem] font-black font-artist uppercase mr-20">Network Engineer</span>
+              <span className="text-[12rem] font-black font-artist uppercase mr-20">X TJKT TWO</span>
+           </div>
+        </div>
+
+        <div className="container mx-auto max-w-5xl">
+          <div className="flex flex-col md:flex-row items-end md:items-center justify-between gap-8 mb-12">
+            
+            {/* User Greeting Badge */}
+            <div className="animate-in fade-in slide-in-from-left duration-700">
+              <button 
+                onClick={() => onExplore('profile')}
+                className="group flex items-center gap-4 pl-2 pr-6 py-2 bg-white/60 border border-white/60 rounded-full hover:bg-white hover:shadow-lg transition-all duration-300"
+              >
+                <div className="w-10 h-10 rounded-full overflow-hidden border border-slate-200">
+                  {user.photo ? (
+                    <img 
+                      src={user.photo} 
+                      alt="Me" 
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
+                      referrerPolicy="no-referrer"
+                      onError={(e) => {
+                        e.currentTarget.src = `https://api.dicebear.com/9.x/initials/svg?seed=${user.name}`;
+                      }}
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-slate-100 text-slate-400">
+                      <UserIcon size={16} />
+                    </div>
+                  )}
+                </div>
+                <div className="text-left">
+                  <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Current User</p>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs font-bold text-slate-900">{firstName}</span>
+                    {user.isAdmin && <CheckCircle2 size={12} className="text-blue-500" />}
                   </div>
-                )}
-              </div>
-            </button>
-            <div className="inline-flex items-center gap-2 glass px-4 py-1.5 rounded-full">
-              {user.isAdmin ? <ShieldAlert size={12} className="text-blue-600" /> : <Sparkles size={12} className="text-yellow-500" />}
-              <span className="text-[9px] sm:text-xs font-black uppercase tracking-widest text-slate-600 flex items-center gap-1.5">
-                Welcome back, {firstName}! {user.isAdmin && <CheckCircle2 size={12} className="text-blue-500" />}
-              </span>
+                </div>
+              </button>
+            </div>
+
+            {/* Hezell Watermark */}
+            <div className="hidden md:block text-right animate-in fade-in slide-in-from-right duration-700 delay-100">
+               <p className="font-handwriting text-2xl text-slate-400">Est. 2026</p>
+               <p className="text-[9px] font-black uppercase tracking-[0.4em] text-slate-300">Hezell Systems</p>
             </div>
           </div>
 
-          <h1 className="font-artist text-6xl md:text-9xl font-bold text-slate-900 mb-4 tracking-tighter animate-in fade-in slide-in-from-bottom duration-1000 leading-[0.9]">
-            X TJKT TWO
-          </h1>
-          <p className="max-w-xl mx-auto text-[10px] sm:text-sm text-slate-500 mb-4 leading-relaxed font-black uppercase tracking-[0.4em] animate-in fade-in slide-in-from-bottom duration-1000 delay-200">
-            Professional Network & <br className="sm:hidden"/> Telecom Engineering Squad
-          </p>
-          <p className="max-w-xl mx-auto text-[10px] sm:text-xs text-slate-400 mb-10 leading-relaxed font-black uppercase tracking-[0.6em] animate-in fade-in slide-in-from-bottom duration-1000 delay-200">
-             HEZELL
-          </p>
-
-          <div className="flex flex-wrap gap-3 justify-center animate-in fade-in slide-in-from-bottom duration-1000 delay-300">
-            <button onClick={() => onExplore('about')} className="px-10 py-5 bg-slate-900 text-white rounded-full hover:bg-slate-800 transition-all shadow-2xl flex items-center justify-center gap-3 group text-xs font-bold uppercase tracking-widest">
-              Vibes Kita <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
-            </button>
-            <button onClick={() => onExplore('cinema')} className="px-10 py-5 glass border-red-200 bg-red-50 text-red-600 rounded-full hover:bg-red-600 hover:text-white transition-all text-xs font-bold uppercase tracking-widest flex items-center gap-2">
-              <Film size={14} /> Bioskop
-            </button>
-            <button onClick={() => onExplore('members')} className="px-10 py-5 glass border-slate-200 text-slate-900 rounded-full hover:bg-white transition-all text-xs font-bold uppercase tracking-widest">
-              Squad List
-            </button>
+          {/* Main Typography */}
+          <div className="relative mb-16">
+            <h1 className="font-artist text-[5rem] sm:text-[7rem] md:text-[9rem] leading-[0.85] font-black text-slate-900 tracking-tighter mix-blend-darken animate-in fade-in slide-in-from-bottom duration-1000">
+              <span className="block">DIGITAL</span>
+              <span className="block italic font-light text-slate-400 pl-4 sm:pl-12">ARCHITECTS</span>
+              <span className="block text-right pr-4 sm:pr-0 text-transparent bg-clip-text bg-gradient-to-r from-slate-900 to-slate-600">OF TJKT 2</span>
+            </h1>
+            
+            <div className="absolute top-0 right-0 md:top-1/2 md:-right-8 w-24 h-24 md:w-32 md:h-32 bg-slate-900 rounded-full flex items-center justify-center text-white animate-spin-slow hidden sm:flex">
+               <div className="text-[10px] font-black uppercase tracking-widest text-center leading-relaxed">
+                  Class<br/>Of<br/>2026
+               </div>
+            </div>
           </div>
-        </div>
-      </div>
 
-      <div className="py-12 bg-white/50 backdrop-blur-sm relative z-10 border-t border-slate-100">
-        <div className="container mx-auto px-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {skills.map((skill, index) => (
-              <div key={index} className="flex items-center gap-5 p-4 rounded-3xl glass border-transparent hover:border-white transition-all">
-                <div className={`w-12 h-12 shrink-0 ${skill.color} rounded-2xl flex items-center justify-center shadow-sm`}>
-                  {skill.icon}
+          <div className="grid md:grid-cols-3 gap-12 items-end">
+             <div className="md:col-span-1 animate-in fade-in slide-in-from-bottom duration-1000 delay-300">
+                <p className="text-xs md:text-sm font-medium text-slate-500 leading-relaxed mb-6 text-justify">
+                   Sebuah ruang digital untuk <span className="text-slate-900 font-bold">X TJKT TWO</span>. 
+                   Menggabungkan teknologi jaringan, kreativitas, dan solidaritas dalam satu platform terintegrasi.
+                </p>
+                <div className="flex items-center gap-4">
+                   <button onClick={() => onExplore('about')} className="h-12 px-8 bg-slate-900 text-white rounded-full flex items-center gap-2 text-[10px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all shadow-xl group">
+                      Explore Vibes <ArrowDownRight size={16} className="group-hover:-rotate-45 transition-transform duration-300" />
+                   </button>
                 </div>
-                <div>
-                  <h4 className="font-artist text-lg font-bold text-slate-900 leading-none mb-1">{skill.title}</h4>
-                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wide leading-tight">{skill.desc}</p>
-                </div>
-              </div>
-            ))}
+             </div>
+
+             <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-4 animate-in fade-in slide-in-from-bottom duration-1000 delay-500">
+                {skills.map((skill, idx) => (
+                   <div key={idx} className="p-6 border border-slate-200 rounded-3xl hover:bg-white hover:border-white hover:shadow-xl transition-all duration-500 group cursor-default">
+                      <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 mb-4 group-hover:bg-slate-900 group-hover:text-white transition-colors">
+                         {skill.icon}
+                      </div>
+                      <h4 className="font-artist text-lg font-bold text-slate-900 mb-1">{skill.title}</h4>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 group-hover:text-slate-500">{skill.desc}</p>
+                   </div>
+                ))}
+             </div>
           </div>
         </div>
       </div>
@@ -132,3 +157,4 @@ const Home: React.FC<HomeProps> = ({ onExplore, user }) => {
 };
 
 export default Home;
+    

@@ -1,11 +1,11 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
-import { Settings, Clock, AlertTriangle, Hammer, RefreshCw, Lock, Unlock, WifiOff, Crown, Sparkles, PieChart, StickyNote, Film, Bot, ArrowRight, X, Users2 } from 'lucide-react'; 
+import { Bot, StickyNote, Users2, Film, ArrowRight, Loader2 } from 'lucide-react';
 import Navbar from './Navbar';
 import Home from './Home';
 import About from './About';
-import Cinema from './Cinema'; 
+import Cinema from './Cinema';
 import Members from './Members';
 import Schedule from './Schedule';
 import Profile from './Profile';
@@ -14,11 +14,12 @@ import Login from './Login';
 import GlobalWall from './GlobalWall';
 import Polling from './Polling';
 import NotificationSystem from './NotificationSystem';
-import ChatAssistant from './ChatAssistant'; 
-import Quiz from './Quiz'; 
-import Leaderboard from './Leaderboard'; 
+import ChatAssistant from './ChatAssistant';
+import Quiz from './Quiz';
+import Leaderboard from './Leaderboard';
 import GroupGenerator from './GroupGenerator';
-import Cursor from './Cursor'; // IMPORT CURSOR
+import Calculator from './Calculator';
+import Cursor from './Cursor';
 import { db } from './firebase';
 import { doc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
@@ -138,7 +139,14 @@ const App = () => {
     setUser(userData);
     localStorage.setItem('tjkt_session', JSON.stringify(userData));
     const tourSeen = localStorage.getItem('tjkt_tour_seen');
-    if (!tourSeen) setShowTour(true);
+    if (!tourSeen) {
+      setShowTour(true);
+    }
+  };
+
+  const handleTourComplete = () => {
+    setShowTour(false);
+    localStorage.setItem('tjkt_tour_seen', 'true');
   };
 
   const handleUpdateProfile = (updatedData: UserData) => {
@@ -146,60 +154,65 @@ const App = () => {
     localStorage.setItem('tjkt_session', JSON.stringify(updatedData));
   };
 
-  const completeTour = () => {
-    setShowTour(false);
-    localStorage.setItem('tjkt_tour_seen', 'true');
-  };
-
   const renderPage = () => {
-    if (!user) return <Login onLogin={handleLogin} />;
-    // Pass user data to Members for the Chemistry feature
     switch (currentPage) {
-      case 'home': return <Home onExplore={setCurrentPage} user={user} />;
-      case 'about': return <About isAdmin={user.isAdmin} />;
-      case 'cinema': return <Cinema isAdmin={user.isAdmin} />;
-      case 'members': return <Members currentUser={user.name} />; // PASS CURRENT USER NAME
-      case 'schedule': return <Schedule />;
-      case 'profile': return <Profile user={user} onUpdate={handleUpdateProfile} />;
-      case 'wall': return <GlobalWall user={user} />;
-      case 'voting': return <Polling user={user} />;
-      case 'quiz': return <Quiz user={user} onSeeLeaderboard={() => setCurrentPage('leaderboard')} />;
-      case 'leaderboard': return <Leaderboard />;
-      case 'generator': return <GroupGenerator isAdmin={user.isAdmin} />;
-      default: return <Home onExplore={setCurrentPage} user={user} />;
+      case 'home':
+        return <Home onExplore={setCurrentPage} user={user!} />;
+      case 'about':
+        return <About isAdmin={user!.isAdmin} />;
+      case 'cinema':
+        return <Cinema isAdmin={user!.isAdmin} />;
+      case 'members':
+        return <Members currentUser={user!.name} />;
+      case 'schedule':
+        return <Schedule />;
+      case 'wall':
+        return <GlobalWall user={user!} />;
+      case 'voting':
+        return <Polling user={user!} />;
+      case 'profile':
+        return <Profile user={user!} onUpdate={handleUpdateProfile} />;
+      case 'quiz':
+        return <Quiz user={user!} onSeeLeaderboard={() => setCurrentPage('leaderboard')} />;
+      case 'leaderboard':
+        return <Leaderboard />;
+      case 'generator':
+        return <GroupGenerator isAdmin={user!.isAdmin} />;
+      case 'calculator':
+        return <Calculator />;
+      default:
+        return <Home onExplore={setCurrentPage} user={user!} />;
     }
   };
 
-  if (loading) return (
-    <div className="h-screen w-screen flex items-center justify-center bg-clean">
-      <div className="animate-pulse font-artist text-2xl text-slate-400">Loading X TJKT TWO...</div>
-    </div>
-  );
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-clean">
+        <Loader2 size={40} className="text-slate-300 animate-spin" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Login onLogin={handleLogin} />;
+  }
 
   return (
-    <div className="bg-clean min-h-screen selection:bg-slate-900 selection:text-white relative cursor-none lg:cursor-auto">
-      {/* Tambahkan Custom Cursor */}
+    <main className="min-h-screen bg-clean text-slate-900 font-sans selection:bg-slate-900 selection:text-white">
+      <NotificationSystem />
+      <Navbar currentPage={currentPage} setCurrentPage={setCurrentPage} user={user} />
       <Cursor />
       
-      <div className="fixed inset-0 pointer-events-none opacity-[0.04] z-[9999] bg-[url('https://grainy-gradients.vercel.app/noise.svg')]"></div>
-      <div className="fixed top-0 left-0 w-full h-full pointer-events-none z-[9998] bg-gradient-to-tr from-blue-50/10 via-transparent to-purple-50/10"></div>
-      {showTour && <FeatureTour onComplete={completeTour} />}
-      <NotificationSystem />
-      {user && <ChatAssistant />}
-      {user && (
-        <Navbar 
-          currentPage={currentPage} 
-          setCurrentPage={setCurrentPage} 
-          user={user}
-        />
-      )}
-      <main className="animate-in fade-in duration-1000">
-        {renderPage()}
-      </main>
-      {user && <Footer />}
-    </div>
+      {renderPage()}
+      
+      <Footer />
+      <ChatAssistant />
+      
+      {showTour && <FeatureTour onComplete={handleTourComplete} />}
+    </main>
   );
 };
 
 const root = createRoot(document.getElementById('root')!);
 root.render(<App />);
+    

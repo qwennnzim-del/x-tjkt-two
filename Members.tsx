@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
-import { Users, ChevronDown, ChevronUp, Star, ShieldCheck, Code, Layout, Palette, Award, Heart, Sparkles, X, Loader2 } from 'lucide-react';
+import { Users, ChevronDown, ChevronUp, Star, ShieldCheck, Code, Award, Heart, X, Loader2, Zap } from 'lucide-react';
 
 interface Member {
   name: string;
@@ -104,220 +104,158 @@ const Members: React.FC<MembersProps> = ({ currentUser }) => {
     }
   };
 
-  // --- CHEMISTRY LOGIC (RANDOM GACHA) ---
   const calculateChemistry = (member: Member) => {
     if (!currentUser) return;
-    
-    // Jangan izinkan cek diri sendiri
     if (member.name.toLowerCase() === currentUser.toLowerCase()) {
         alert("Cek diri sendiri? Narsis banget lu! 😂");
         return;
     }
-
     setIsCalculating(true);
     setChemistryResult(null);
-
-    // Kita hilangkan Hash Deterministic agar hasil selalu berubah (random)
-    // Tapi tetap pakai delay biar ada sensasi "menghitung"
-    
     setTimeout(() => {
         let percentage = 0;
         const upperMember = member.name.toUpperCase();
         const upperUser = currentUser.toUpperCase();
-
-        // 1. KASUS KHUSUS: WALI KELAS (IBU RESITA)
-        // Tetap Fix 100%
         if (upperMember.includes("RESITA")) {
             percentage = 100; 
-        }
-        // 2. KASUS SPESIAL: FARIZ & MELVINA (THE MAIN CHARACTERS)
-        // Range Random: 90% - 100%
-        else if (
+        } else if (
             upperUser.includes("FARIZ") || 
             upperMember.includes("FARIZ") ||
             upperUser.includes("MELVINA") ||
             upperMember.includes("MELVINA")
         ) {
-            // Math.random() returns 0 - 0.999...
-            // Dikali 11 -> 0 - 10.99...
-            // Floor -> 0 - 10
-            // Ditambah 90 -> 90 - 100
             percentage = Math.floor(Math.random() * 11) + 90;
-        }
-        // 3. WARGA BIASA (LIMITED EDITION)
-        // Range Random: 0% - 89%
-        else {
+        } else {
             percentage = Math.floor(Math.random() * 90);
         }
-
         setChemistryResult(percentage);
         setIsCalculating(false);
     }, 2000);
   };
 
   const getChemistryStatus = (score: number, memberName: string) => {
-      // Status Khusus Wali Kelas
       if (memberName.toUpperCase().includes("RESITA")) return "Restu Ibu Guru 😇";
-      
-      // Status High Score
-      if (score >= 95) return "Soulmate Ter-Valid! 💎";
-      if (score >= 90) return "JODOH DUNIA AKHIRAT 😍";
-      if (score >= 80) return "Vibe Kalian Nyambung Banget ✨";
-      if (score >= 70) return "Bestie Sejati ✨";
-      if (score >= 50) return "Teman Tapi Mesra? 🤔";
-      if (score >= 30) return "Cuma Teman Tugas 📚";
-      return "Jangan Berharap Deh 💀";
+      if (score >= 90) return "Soulmate Sejati! 💖";
+      if (score >= 75) return "Bestie Goals 🔥";
+      if (score >= 60) return "Teman Asik ✨";
+      if (score >= 40) return "Butuh Ngopi Bareng ☕";
+      return "Mungkin Beda Frekuensi 📡";
   };
 
   return (
-    <section className="py-24 pt-32 bg-clean min-h-screen relative overflow-hidden">
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-50/20 rounded-full filter blur-[120px] pointer-events-none -z-10"></div>
-      
-      <div className="container mx-auto px-4 sm:px-6">
-        <div id="members-title" className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-8">
-          <div>
-            <span className="font-handwriting text-2xl sm:text-3xl text-slate-400 block mb-3">Wajah-Wajah X TJKT TWO</span>
-            <h2 className="font-artist text-5xl sm:text-7xl font-black text-slate-900 tracking-tighter uppercase leading-none">
-              The <span className="text-slate-200">Squad</span>
-            </h2>
-            <div className="w-20 h-1.5 bg-slate-900 mt-6 rounded-full"></div>
+    <section className="min-h-screen pt-32 pb-20 px-6 bg-clean relative overflow-hidden">
+      <div className="container mx-auto max-w-6xl relative z-10">
+        <header className="text-center mb-16 animate-in slide-in-from-top duration-700">
+          <div className="inline-flex items-center gap-3 glass px-6 py-2 rounded-full mb-6">
+            <Users size={16} className="text-emerald-500" />
+            <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Class Directory</span>
           </div>
-          
-          <div className="glass px-6 py-4 rounded-[2rem] flex items-center gap-4 shadow-sm animate-in fade-in slide-in-from-right duration-1000 self-start sm:self-auto">
-            <div className="w-12 h-12 bg-slate-900 text-white rounded-xl flex items-center justify-center shadow-lg transform -rotate-3">
-              <Users size={24} />
-            </div>
-            <div>
-              <p className="text-[9px] uppercase tracking-[0.3em] font-black text-slate-400 mb-0.5 leading-none">Total Squad</p>
-              <p className="text-2xl font-artist font-black text-slate-900 tracking-tight leading-none">{rawMembers.length}</p>
-            </div>
-          </div>
-        </div>
+          <h2 className="font-artist text-5xl md:text-7xl font-black text-slate-900 tracking-tighter uppercase leading-none">
+            TJKT <span className="text-slate-200">SQUAD</span>
+          </h2>
+          <p className="font-handwriting text-2xl text-slate-400 mt-4">Keluarga Besar X TJKT TWO</p>
+        </header>
 
-        <div className="relative pb-20">
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 sm:gap-6 relative">
-            {displayedMembers.map((member, i) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {displayedMembers.map((member, idx) => {
+            const gradient = getGradient(member.priority);
+            return (
               <div 
-                key={i} 
-                className="group animate-in fade-in zoom-in duration-500 cursor-pointer"
-                style={{ animationDelay: `${(i % 12) * 40}ms` }}
+                key={idx}
                 onClick={() => {
-                    setSelectedMember(member);
-                    setChemistryResult(null);
+                  setSelectedMember(member);
+                  calculateChemistry(member);
                 }}
+                className={`group relative p-6 rounded-[2.5rem] transition-all duration-500 hover:-translate-y-2 cursor-pointer bg-gradient-to-br ${gradient} border border-white/60 shadow-sm hover:shadow-xl`}
               >
-                <div className={`glass rounded-[2rem] p-5 sm:p-6 h-full flex flex-col transition-all duration-500 hover:-translate-y-2 group-hover:shadow-2xl group-hover:bg-white border-white/40 ${member.priority === 0 ? 'ring-2 ring-amber-200 bg-amber-50/40' : ''}`}>
-                  <div className={`aspect-square rounded-3xl bg-gradient-to-br ${getGradient(member.priority)} flex items-center justify-center text-2xl sm:text-3xl font-artist font-black mb-5 shadow-inner transition-transform duration-700 group-hover:scale-95 relative overflow-hidden`}>
-                     {/* Hover Effect Hint */}
-                     <div className="absolute inset-0 bg-slate-900/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                        <span className="text-[8px] font-black uppercase tracking-widest bg-white px-2 py-1 rounded-full text-slate-900">Tap Me</span>
-                     </div>
+                <div className="flex items-start justify-between mb-8">
+                  <div className="w-16 h-16 rounded-2xl bg-white/80 backdrop-blur-sm flex items-center justify-center text-xl font-black shadow-inner border border-white">
                     {getInitials(member.name)}
                   </div>
-                  
-                  <div className="flex-grow">
-                    <div className="flex items-center gap-1.5 mb-1.5 min-h-[14px]">
-                      {getRoleIcon(member.role)}
-                      <span className={`text-[9px] font-black uppercase tracking-[0.2em] ${member.priority < 6 ? 'text-slate-900' : 'text-slate-400'}`}>
-                        {member.role}
-                      </span>
-                    </div>
-                    <h3 className="font-artist text-sm sm:text-base leading-tight font-black text-slate-900 transition-colors uppercase break-words tracking-tight group-hover:text-blue-600">
-                      {member.name.toLowerCase()}
-                    </h3>
-                  </div>
+                  {getRoleIcon(member.role) && (
+                     <div className="p-2 bg-white rounded-full shadow-sm">
+                        {getRoleIcon(member.role)}
+                     </div>
+                  )}
+                </div>
+
+                <div>
+                   <h4 className="font-artist text-lg font-black text-slate-900 leading-none mb-2 line-clamp-2 min-h-[2.5rem] uppercase tracking-tight">{member.name}</h4>
+                   <p className="text-[10px] font-bold uppercase tracking-widest opacity-60">{member.role}</p>
+                </div>
+
+                <div className="mt-6 pt-4 border-t border-black/5 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <span className="text-[9px] font-black uppercase tracking-widest text-slate-500">Cek Chemistry</span>
+                    <Heart size={14} className="text-pink-400" />
                 </div>
               </div>
-            ))}
-          </div>
-
-          {!showAll && rawMembers.length > INITIAL_LIMIT && (
-            <div className="absolute bottom-0 left-0 right-0 h-80 bg-gradient-to-t from-clean via-clean/90 to-transparent flex items-end justify-center pb-4 pointer-events-none">
-              <button 
-                onClick={() => setShowAll(true)}
-                className="pointer-events-auto group flex items-center gap-4 px-10 py-5 bg-slate-900 text-white rounded-full hover:shadow-2xl hover:-translate-y-1 transition-all duration-500 font-black uppercase tracking-[0.3em] text-[10px] shadow-2xl"
-              >
-                Reveal Full Squad
-                <ChevronDown size={18} className="group-hover:translate-y-1 transition-transform" />
-              </button>
-            </div>
-          )}
-
-          {showAll && (
-            <div className="mt-16 flex justify-center">
-              <button 
-                onClick={() => {
-                  setShowAll(false);
-                  document.getElementById('members-title')?.scrollIntoView({ behavior: 'smooth' });
-                }}
-                className="group flex items-center gap-4 px-10 py-5 glass text-slate-900 rounded-full hover:bg-slate-900 hover:text-white transition-all duration-500 shadow-xl font-black uppercase tracking-[0.3em] text-[10px]"
-              >
-                Close List <ChevronUp size={18} className="group-hover:-translate-y-1 transition-transform" />
-              </button>
-            </div>
-          )}
+            );
+          })}
         </div>
-      </div>
 
-      {/* CHEMISTRY MODAL */}
-      {selectedMember && (
-          <div className="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-6 animate-in fade-in duration-300">
-              <div className="w-full max-w-sm bg-white rounded-[3rem] p-8 shadow-2xl relative animate-in zoom-in-95 duration-300">
-                  <button 
-                    onClick={() => setSelectedMember(null)}
-                    className="absolute top-6 right-6 p-2 bg-slate-100 rounded-full hover:bg-slate-200 transition-colors"
-                  >
-                      <X size={20} />
-                  </button>
-
-                  <div className="text-center">
-                      <div className="w-20 h-20 mx-auto bg-slate-900 text-white rounded-3xl flex items-center justify-center text-3xl font-artist font-black mb-6 shadow-xl transform rotate-3">
-                          {getInitials(selectedMember.name)}
-                      </div>
-                      <h3 className="font-artist text-2xl font-black text-slate-900 uppercase leading-none mb-1">{selectedMember.name}</h3>
-                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-8">{selectedMember.role}</p>
-
-                      {!chemistryResult && !isCalculating ? (
-                          <div className="space-y-4">
-                              <p className="text-sm text-slate-500 font-medium">Penasaran seberapa cocok kamu sama dia?</p>
-                              <button 
-                                onClick={() => calculateChemistry(selectedMember)}
-                                className="w-full py-4 bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-2xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:scale-105 transition-transform shadow-lg shadow-pink-200"
-                              >
-                                  <Heart size={16} className="fill-white animate-pulse" />
-                                  Cek Chemistry (Gacha)
-                              </button>
-                          </div>
-                      ) : isCalculating ? (
-                          <div className="py-8 flex flex-col items-center gap-4">
-                              <Loader2 size={32} className="text-pink-500 animate-spin" />
-                              <p className="text-[10px] font-black uppercase tracking-widest text-pink-400 animate-pulse">Menghitung detak jantung...</p>
-                          </div>
-                      ) : (
-                          <div className="animate-in zoom-in duration-500">
-                              <div className="relative w-32 h-32 mx-auto mb-6 flex items-center justify-center">
-                                  <svg className="absolute inset-0 w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-                                      <path className="text-slate-100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" strokeWidth="3" />
-                                      <path className="text-pink-500" strokeDasharray={`${chemistryResult}, 100`} d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-                                  </svg>
-                                  <div className="text-center">
-                                      <span className="text-3xl font-black font-artist text-slate-900 block">{chemistryResult}%</span>
-                                  </div>
-                              </div>
-                              <h4 className="font-artist text-xl font-bold text-pink-600 mb-2">{getChemistryStatus(chemistryResult || 0, selectedMember.name)}</h4>
-                              <p className="text-[10px] text-slate-400 uppercase tracking-widest font-bold">Hasil prediksi Hzell AI</p>
-                              <button 
-                                onClick={() => calculateChemistry(selectedMember)}
-                                className="mt-4 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 underline decoration-dotted"
-                              >
-                                Coba lagi?
-                              </button>
-                          </div>
-                      )}
-                  </div>
-              </div>
+        {!showAll && (
+          <div className="mt-16 text-center">
+            <button 
+              onClick={() => setShowAll(true)}
+              className="px-10 py-4 bg-slate-900 text-white rounded-full font-black uppercase tracking-[0.2em] text-[10px] hover:bg-slate-800 transition-all shadow-xl flex items-center gap-3 mx-auto group"
+            >
+              Lihat Semua Member <ChevronDown size={16} className="group-hover:translate-y-1 transition-transform" />
+            </button>
           </div>
-      )}
+        )}
+        
+        {showAll && (
+           <div className="mt-16 text-center">
+            <button 
+              onClick={() => setShowAll(false)}
+              className="px-10 py-4 bg-white text-slate-900 border border-slate-200 rounded-full font-black uppercase tracking-[0.2em] text-[10px] hover:bg-slate-50 transition-all shadow-lg flex items-center gap-3 mx-auto group"
+            >
+              Sembunyikan <ChevronUp size={16} className="group-hover:-translate-y-1 transition-transform" />
+            </button>
+          </div>
+        )}
+
+        {/* Chemistry Modal */}
+        {selectedMember && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-300">
+             <div className="bg-white rounded-[3rem] p-8 max-w-sm w-full shadow-2xl relative animate-in zoom-in-95 duration-300">
+                <button 
+                  onClick={() => setSelectedMember(null)}
+                  className="absolute top-6 right-6 p-2 bg-slate-100 rounded-full hover:bg-slate-200 transition-colors"
+                >
+                  <X size={16} />
+                </button>
+
+                <div className="text-center">
+                   <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center text-2xl font-black mx-auto mb-4 border-4 border-white shadow-lg">
+                      {getInitials(selectedMember.name)}
+                   </div>
+                   <h3 className="font-artist text-2xl font-black text-slate-900 uppercase tracking-tight leading-none mb-1">{selectedMember.name}</h3>
+                   <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-8">{selectedMember.role}</p>
+                   
+                   <div className="bg-slate-50 rounded-3xl p-6 border border-slate-100">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4">Compatibility Check</p>
+                      
+                      {isCalculating ? (
+                        <div className="flex flex-col items-center gap-2 py-4">
+                           <Loader2 size={24} className="animate-spin text-slate-300" />
+                           <span className="text-xs font-bold text-slate-400 animate-pulse">Calculating...</span>
+                        </div>
+                      ) : chemistryResult !== null ? (
+                        <div className="animate-in zoom-in duration-500">
+                           <div className="text-5xl font-artist font-black text-slate-900 mb-2">{chemistryResult}%</div>
+                           <div className="h-2 w-full bg-slate-200 rounded-full overflow-hidden mb-3">
+                              <div className="h-full bg-gradient-to-r from-pink-400 to-purple-500 transition-all duration-1000" style={{ width: `${chemistryResult}%` }}></div>
+                           </div>
+                           <p className="text-xs font-bold text-slate-600 uppercase tracking-wide">{getChemistryStatus(chemistryResult, selectedMember.name)}</p>
+                        </div>
+                      ) : null}
+                   </div>
+                </div>
+             </div>
+          </div>
+        )}
+      </div>
     </section>
   );
 };
