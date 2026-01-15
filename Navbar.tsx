@@ -93,7 +93,9 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, user }) =>
   };
 
   const handleLogout = () => {
+    // Hapus sesi dari localStorage
     localStorage.removeItem('tjkt_session');
+    // Reload halaman untuk kembali ke Login screen
     window.location.reload();
   };
 
@@ -162,22 +164,57 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, user }) =>
                 </div>
               </div>
             )}
+            
+            {/* PROFILE BUTTON */}
             <button onClick={() => handleNavClick('profile')} className={`hidden lg:flex items-center gap-3 p-1 pr-4 rounded-full transition-all border ${currentPage === 'profile' ? 'bg-slate-900 text-white' : 'bg-white border-slate-100 text-slate-900'}`}>
               <div className="w-8 h-8 rounded-full overflow-hidden bg-slate-200 border border-white shrink-0">
                 {user.photo ? <img src={user.photo} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center"><UserIcon size={14} /></div>}
               </div>
               <span className="text-[9px] font-black uppercase tracking-tighter truncate max-w-[80px]">{user.name.split(' ')[0]}</span>
             </button>
+
+            {/* LOGOUT BUTTON DESKTOP */}
+            <button 
+              onClick={handleLogout}
+              className="hidden lg:flex p-2.5 rounded-full bg-red-50 text-red-500 border border-red-100 hover:bg-red-500 hover:text-white transition-all shadow-sm group"
+              title="Keluar Sesi"
+            >
+              <LogOut size={18} className="group-hover:-translate-x-0.5 transition-transform" />
+            </button>
+
+            {/* MOBILE MENU TOGGLE */}
             <button className="lg:hidden p-2 text-slate-800 bg-white border border-slate-100 rounded-full" onClick={() => setIsOpen(!isOpen)}>{isOpen ? <X size={20} /> : <Menu size={20} />}</button>
           </div>
         </div>
       </div>
+
+      {/* MOBILE MENU DROPDOWN */}
       {isOpen && (
         <div className="absolute top-24 left-6 right-6 lg:hidden z-40">
           <div className="glass rounded-[2.5rem] p-6 flex flex-col gap-4 shadow-3xl animate-in slide-in-from-top duration-500">
             {navLinks.map((link) => (
               <button key={link.id} onClick={() => handleNavClick(link.id)} className={`text-sm font-black uppercase tracking-[0.2em] py-3 text-left border-b border-slate-50 last:border-0 ${currentPage === link.id ? 'text-slate-900' : 'text-slate-400'}`}>{link.name}</button>
             ))}
+            
+            <div className="h-px bg-slate-100 my-2"></div>
+            
+            <button onClick={() => handleNavClick('profile')} className="flex items-center gap-4 py-3 group">
+               <div className="w-10 h-10 rounded-full overflow-hidden border border-slate-200">
+                  {user.photo ? <img src={user.photo} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center bg-slate-100 text-slate-400"><UserIcon size={16}/></div>}
+               </div>
+               <div className="text-left">
+                  <p className="text-xs font-black uppercase text-slate-900">{user.name}</p>
+                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Edit Profile</p>
+               </div>
+            </button>
+
+            {/* LOGOUT BUTTON MOBILE */}
+            <button 
+              onClick={handleLogout}
+              className="w-full py-4 bg-red-50 text-red-500 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] flex items-center justify-center gap-2 hover:bg-red-500 hover:text-white transition-all border border-red-100 mt-2"
+            >
+               <LogOut size={14} /> Keluar / Logout
+            </button>
           </div>
         </div>
       )}

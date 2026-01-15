@@ -104,7 +104,7 @@ const Members: React.FC<MembersProps> = ({ currentUser }) => {
     }
   };
 
-  // --- CHEMISTRY LOGIC ---
+  // --- CHEMISTRY LOGIC (RANDOM GACHA) ---
   const calculateChemistry = (member: Member) => {
     if (!currentUser) return;
     
@@ -117,22 +117,52 @@ const Members: React.FC<MembersProps> = ({ currentUser }) => {
     setIsCalculating(true);
     setChemistryResult(null);
 
-    // Algoritma Hash Sederhana agar hasil KONSISTEN (tidak random setiap klik)
-    const combinedNames = [currentUser.toLowerCase(), member.name.toLowerCase()].sort().join('');
-    let hash = 0;
-    for (let i = 0; i < combinedNames.length; i++) {
-        hash = combinedNames.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    const percentage = Math.abs(hash % 101); // 0 - 100
-
+    // Kita hilangkan Hash Deterministic agar hasil selalu berubah (random)
+    // Tapi tetap pakai delay biar ada sensasi "menghitung"
+    
     setTimeout(() => {
+        let percentage = 0;
+        const upperMember = member.name.toUpperCase();
+        const upperUser = currentUser.toUpperCase();
+
+        // 1. KASUS KHUSUS: WALI KELAS (IBU RESITA)
+        // Tetap Fix 100%
+        if (upperMember.includes("RESITA")) {
+            percentage = 100; 
+        }
+        // 2. KASUS SPESIAL: FARIZ & MELVINA (THE MAIN CHARACTERS)
+        // Range Random: 90% - 100%
+        else if (
+            upperUser.includes("FARIZ") || 
+            upperMember.includes("FARIZ") ||
+            upperUser.includes("MELVINA") ||
+            upperMember.includes("MELVINA")
+        ) {
+            // Math.random() returns 0 - 0.999...
+            // Dikali 11 -> 0 - 10.99...
+            // Floor -> 0 - 10
+            // Ditambah 90 -> 90 - 100
+            percentage = Math.floor(Math.random() * 11) + 90;
+        }
+        // 3. WARGA BIASA (LIMITED EDITION)
+        // Range Random: 0% - 89%
+        else {
+            percentage = Math.floor(Math.random() * 90);
+        }
+
         setChemistryResult(percentage);
         setIsCalculating(false);
     }, 2000);
   };
 
-  const getChemistryStatus = (score: number) => {
+  const getChemistryStatus = (score: number, memberName: string) => {
+      // Status Khusus Wali Kelas
+      if (memberName.toUpperCase().includes("RESITA")) return "Restu Ibu Guru 😇";
+      
+      // Status High Score
+      if (score >= 95) return "Soulmate Ter-Valid! 💎";
       if (score >= 90) return "JODOH DUNIA AKHIRAT 😍";
+      if (score >= 80) return "Vibe Kalian Nyambung Banget ✨";
       if (score >= 70) return "Bestie Sejati ✨";
       if (score >= 50) return "Teman Tapi Mesra? 🤔";
       if (score >= 30) return "Cuma Teman Tugas 📚";
@@ -255,7 +285,7 @@ const Members: React.FC<MembersProps> = ({ currentUser }) => {
                                 className="w-full py-4 bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-2xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:scale-105 transition-transform shadow-lg shadow-pink-200"
                               >
                                   <Heart size={16} className="fill-white animate-pulse" />
-                                  Cek Chemistry
+                                  Cek Chemistry (Gacha)
                               </button>
                           </div>
                       ) : isCalculating ? (
@@ -274,8 +304,14 @@ const Members: React.FC<MembersProps> = ({ currentUser }) => {
                                       <span className="text-3xl font-black font-artist text-slate-900 block">{chemistryResult}%</span>
                                   </div>
                               </div>
-                              <h4 className="font-artist text-xl font-bold text-pink-600 mb-2">{getChemistryStatus(chemistryResult || 0)}</h4>
+                              <h4 className="font-artist text-xl font-bold text-pink-600 mb-2">{getChemistryStatus(chemistryResult || 0, selectedMember.name)}</h4>
                               <p className="text-[10px] text-slate-400 uppercase tracking-widest font-bold">Hasil prediksi Hzell AI</p>
+                              <button 
+                                onClick={() => calculateChemistry(selectedMember)}
+                                className="mt-4 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 underline decoration-dotted"
+                              >
+                                Coba lagi?
+                              </button>
                           </div>
                       )}
                   </div>
