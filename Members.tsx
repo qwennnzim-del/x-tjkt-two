@@ -1,6 +1,7 @@
-
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Users, ChevronDown, ChevronUp, Star, ShieldCheck, Code, Award, Heart, X, Loader2, Zap } from 'lucide-react';
+import { db } from './firebase';
+import { collection, onSnapshot, query } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
 interface Member {
   name: string;
@@ -17,54 +18,71 @@ const Members: React.FC<MembersProps> = ({ currentUser }) => {
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
   const [isCalculating, setIsCalculating] = useState(false);
   const [chemistryResult, setChemistryResult] = useState<number | null>(null);
+  const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
+
+  // Listen to Real-time Online Users
+  useEffect(() => {
+    const q = query(collection(db, "user_logins"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const activeNames = new Set<string>();
+      snapshot.docs.forEach(doc => {
+        const data = doc.data();
+        if (data.name) {
+          activeNames.add(data.name.toLowerCase().trim());
+        }
+      });
+      setOnlineUsers(activeNames);
+    });
+    return () => unsubscribe();
+  }, []);
 
   const rawMembers: Member[] = [
     { name: "IBU RESITA", role: "Wali Kelas", priority: 0 },
     { name: "IRFAN FERMADI", role: "Ketua Murid", priority: 1 },
     { name: "GALUH RAY PUTRA", role: "Wakil Murid", priority: 2 },
-    { name: "MELVINA YEIZA ALWI", role: "Sekretaris", priority: 3 },
-    { name: "Muhani Khalifia Khadijah", role: "Sekretaris", priority: 3 },
-    { name: "SALMA YUNIAR", role: "Bendahara", priority: 4 },
-    { name: "SITI SARIFAH ANJANI", role: "Bendahara", priority: 4 },
-    { name: "M FARIZ ALFAUZI", role: "DEVELOPMENT", priority: 5 },
-    { name: "MUHAMMAD ZYLDAN MUZHAFFAR SUPRIYANA", role: "DEVELOPMENT", priority: 5 },
-    { name: "Muhamad Razib", role: "DEVELOPMENT", priority: 5 },
-    { name: "EVANDER YUSUF FARIZKY", role: "OSIS", priority: 5 },
-    { name: "DIMAS ALVINO", role: "OSIS", priority: 5 },
-    { name: "ALHAM HAIKAL", role: "Member", priority: 6 },
-    { name: "ANNAS NASRI MAULUDIN", role: "Member", priority: 6 },
-    { name: "AUREL AGRI NOVIANTI", role: "Member", priority: 6 },
-    { name: "AYATULL HUSNA", role: "Member", priority: 6 },
-    { name: "AZMI ABDUL MAULANA", role: "Member", priority: 6 },
-    { name: "Bibit Adi Syaputra", role: "Member", priority: 6 },
-    { name: "CAKRA BUANA", role: "Member", priority: 6 },
-    { name: "DERI PADLLI", role: "Member", priority: 6 },
-    { name: "GALUH RAGA PANUNTUN", role: "Member", priority: 6 },
-    { name: "HASBI NURSYAH PUTRA", role: "Member", priority: 6 },
-    { name: "INTAN DARMAWAN", role: "Member", priority: 6 },
-    { name: "M RABLI AZWAR", role: "Member", priority: 6 },
-    { name: "M. PADIL NURJAMAN", role: "Member", priority: 6 },
-    { name: "Megha Indah Ramdani", role: "Member", priority: 6 },
-    { name: "MOH BILAL NURULFATA", role: "Member", priority: 6 },
-    { name: "MUHAMMAD FIRMAN SUPIANI", role: "Member", priority: 6 },
-    { name: "MUHAMMAD MAULANA", role: "Member", priority: 6 },
-    { name: "MUHAMMAD WIJAYA ZAINUR RAHMAN", role: "Member", priority: 6 },
-    { name: "Muhamad Zaky Pairus", role: "Member", priority: 6 },
-    { name: "MUHAMMAD RASYA RADITYA SWARNA", role: "Member", priority: 6 },
-    { name: "MUHAMMAD REIHAN ALPIANSYAH", role: "Member", priority: 6 },
-    { name: "MUHAMMAD RIZKI PRATAMA", role: "Member", priority: 6 },
-    { name: "NURSHIFA AMALIA", role: "Member", priority: 6 },
-    { name: "PAHRI GILANG PRATAMA", role: "Member", priority: 6 },
-    { name: "RAYHAN AMBIYA", role: "Member", priority: 6 },
-    { name: "REZA JUNIARDI", role: "Member", priority: 6 },
-    { name: "RINDU RIAYU", role: "Member", priority: 6 },
-    { name: "RISTA AMELIA", role: "Member", priority: 6 },
-    { name: "RIZKIA FEBRIANTI", role: "Member", priority: 6 },
-    { name: "SALMA ZULFA NASYITHA", role: "Member", priority: 6 },
-    { name: "SHIRA PUTRYASNI WULANDARI", role: "Member", priority: 6 },
-    { name: "WOLID HERDIANSYAH", role: "Member", priority: 6 },
-    { name: "ZULPA APRILIANI", role: "Member", priority: 6 },
-    { name: "RAYA", role: "Member", priority: 6 },
+    { name: "MELVINA YEIZA ALWI", role: "Sekretaris 1", priority: 3 },
+    { name: "Muhani Khalifia Khadijah", role: "Sekretaris 2", priority: 3 },
+    { name: "SALMA YUNIAR", role: "Bendahara 1", priority: 4 },
+    { name: "SITI SARIFAH ANJANI", role: "Bendahara 2", priority: 4 },
+    { name: "M FARIZ ALFAUZI", role: "Member", priority: 5 },
+    { name: "MUHAMMAD ZYLDAN MUZHAFFAR SUPRIYANA", role: "Member", priority: 5 },
+    { name: "Muhamad Razib", role: "Member", priority: 5 },
+    { name: "EVANDER YUSUF FARIZKY", role: "Member", priority: 5 },
+    { name: "DIMAS ALVINO", role: "Member", priority: 5 },
+    { name: "ALHAM HAIKAL", role: "Member", priority: 5 },
+    { name: "ANNAS NASRI MAULUDIN", role: "Member", priority: 5 },
+    { name: "AUREL AGRI NOVIANTI", role: "Member", priority: 5 },
+    { name: "AYATULL HUSNA", role: "Member", priority: 5 },
+    { name: "AZMI ABDUL MAULANA", role: "Member", priority: 5 },
+    { name: "Bibit Adi Syaputra", role: "Member", priority: 5 },
+    { name: "CAKRA BUANA", role: "Member", priority: 5 },
+    { name: "DERI PADLLI", role: "Member", priority: 5 },
+    { name: "GALUH RAGA PANUNTUN", role: "Member", priority: 5 },
+    { name: "HASBI NURSYAH PUTRA", role: "Member", priority: 5 },
+    { name: "INTAN DARMAWAN", role: "Member", priority: 5 },
+    { name: "M RABLI AZWAR", role: "Member", priority: 5 },
+    { name: "M. PADIL NURJAMAN", role: "Member", priority: 5 },
+    { name: "Megha Indah Ramdani", role: "Member", priority: 5 },
+    { name: "MOH BILAL NURULFATA", role: "Member", priority: 5 },
+    { name: "MUHAMAD FIRMAN SUPIANI", role: "Member", priority: 5 },
+    { name: "MUHAMAD MAULANA", role: "Member", priority: 5 },
+    { name: "MUHAMAD WIJAYA ZAINUR RAHMAN", role: "Member", priority: 5 },
+    { name: "Muhamad Zaky Pairus", role: "Member", priority: 5 },
+    { name: "MUHAMMAD RASYA RADITYA SWARNA", role: "Member", priority: 5 },
+    { name: "MUHAMMAD REIHAN ALPIANSYAH", role: "Member", priority: 5 },
+    { name: "MUHAMMAD RIZKI PRATAMA", role: "Member", priority: 5 },
+    { name: "NURSHIFA AMALIA", role: "Member", priority: 5 },
+    { name: "PAHRI GILANG PRATAMA", role: "Member", priority: 5 },
+    { name: "RAYHAN AMBIYA", role: "Member", priority: 5 },
+    { name: "REZA JUNIARDI", role: "Member", priority: 5 },
+    { name: "RINDU RIAYU", role: "Member", priority: 5 },
+    { name: "RISTA AMELIA", role: "Member", priority: 5 },
+    { name: "RIZKIA FEBRIANTI", role: "Member", priority: 5 },
+    { name: "SALMA ZULFA NASYITHA", role: "Member", priority: 5 },
+    { name: "SHIRA PUTRYASNI WULANDARI", role: "Member", priority: 5 },
+    { name: "WOLID HERDIANSYAH", role: "Member", priority: 5 },
+    { name: "ZULPA APRILIANI", role: "Member", priority: 5 },
+    { name: "RAYA", role: "Member", priority: 5 }
   ];
 
   const sortedMembers = useMemo(() => {
@@ -74,188 +92,156 @@ const Members: React.FC<MembersProps> = ({ currentUser }) => {
     });
   }, []);
 
-  const INITIAL_LIMIT = 12;
-  const displayedMembers = showAll ? sortedMembers : sortedMembers.slice(0, INITIAL_LIMIT);
+  const displayedMembers = showAll ? sortedMembers : sortedMembers.slice(0, 8);
 
-  const getRoleIcon = (role: string) => {
-    const r = role.toLowerCase();
-    if (r.includes('wali')) return <Star size={12} className="text-amber-500" />;
-    if (r.includes('ketua') || r.includes('wakil')) return <ShieldCheck size={12} className="text-blue-500" />;
-    if (r.includes('osis')) return <Award size={12} className="text-indigo-500" />;
-    if (r.includes('development')) return <Code size={12} className="text-emerald-500" />;
-    return null;
-  };
-
-  const getInitials = (name: string) => {
-    const parts = name.split(' ');
-    if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
-    return name.slice(0, 2).toUpperCase();
-  };
-
-  const getGradient = (priority: number) => {
-    switch(priority) {
-      case 0: return "from-amber-100 to-orange-100 text-amber-700";
-      case 1: 
-      case 2: return "from-blue-100 to-indigo-100 text-blue-700";
-      case 3:
-      case 4: return "from-purple-100 to-pink-100 text-purple-700";
-      case 5: return "from-emerald-100 to-teal-100 text-emerald-700";
-      default: return "from-slate-100 to-slate-200 text-slate-500";
-    }
-  };
-
-  const calculateChemistry = (member: Member) => {
-    if (!currentUser) return;
-    if (member.name.toLowerCase() === currentUser.toLowerCase()) {
-        alert("Cek diri sendiri? Narsis banget lu! 😂");
-        return;
-    }
+  const calculateChemistry = () => {
     setIsCalculating(true);
     setChemistryResult(null);
     setTimeout(() => {
-        let percentage = 0;
-        const upperMember = member.name.toUpperCase();
-        const upperUser = currentUser.toUpperCase();
-        if (upperMember.includes("RESITA")) {
-            percentage = 100; 
-        } else if (
-            upperUser.includes("FARIZ") || 
-            upperMember.includes("FARIZ") ||
-            upperUser.includes("MELVINA") ||
-            upperMember.includes("MELVINA")
-        ) {
-            percentage = Math.floor(Math.random() * 11) + 90;
-        } else {
-            percentage = Math.floor(Math.random() * 90);
-        }
-        setChemistryResult(percentage);
-        setIsCalculating(false);
+      const percentage = Math.floor(Math.random() * 40) + 60; // 60-100%
+      setChemistryResult(percentage);
+      setIsCalculating(false);
     }, 2000);
   };
 
-  const getChemistryStatus = (score: number, memberName: string) => {
-      if (memberName.toUpperCase().includes("RESITA")) return "Restu Ibu Guru 😇";
-      if (score >= 90) return "Soulmate Sejati! 💖";
-      if (score >= 75) return "Bestie Goals 🔥";
-      if (score >= 60) return "Teman Asik ✨";
-      if (score >= 40) return "Butuh Ngopi Bareng ☕";
-      return "Mungkin Beda Frekuensi 📡";
+  const handleMemberClick = (member: Member) => {
+    setSelectedMember(member);
+    setChemistryResult(null);
   };
 
   return (
     <section className="min-h-screen pt-32 pb-20 px-6 bg-clean relative overflow-hidden">
-      <div className="container mx-auto max-w-6xl relative z-10">
+      <div className="container mx-auto max-w-5xl">
         <header className="text-center mb-16 animate-in slide-in-from-top duration-700">
           <div className="inline-flex items-center gap-3 glass px-6 py-2 rounded-full mb-6">
-            <Users size={16} className="text-emerald-500" />
-            <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Class Directory</span>
+            <Users size={16} className="text-blue-500" />
+            <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Student Directory</span>
           </div>
           <h2 className="font-artist text-5xl md:text-7xl font-black text-slate-900 tracking-tighter uppercase leading-none">
-            TJKT <span className="text-slate-200">SQUAD</span>
+            SQUAD <span className="text-slate-200">X TJKT 2</span>
           </h2>
-          <p className="font-handwriting text-2xl text-slate-400 mt-4">Keluarga Besar X TJKT TWO</p>
+          <p className="font-handwriting text-2xl text-slate-400 mt-4">Kompak, Solid, dan Berprestasi.</p>
         </header>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {displayedMembers.map((member, idx) => {
-            const gradient = getGradient(member.priority);
-            return (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+          {displayedMembers.map((member, index) => {
+             const isOnline = onlineUsers.has(member.name.toLowerCase());
+             const isPriority = member.priority < 5;
+
+             return (
               <div 
-                key={idx}
-                onClick={() => {
-                  setSelectedMember(member);
-                  calculateChemistry(member);
-                }}
-                className={`group relative p-6 rounded-[2.5rem] transition-all duration-500 hover:-translate-y-2 cursor-pointer bg-gradient-to-br ${gradient} border border-white/60 shadow-sm hover:shadow-xl`}
+                key={index}
+                onClick={() => handleMemberClick(member)}
+                className={`group relative p-6 rounded-[2rem] border transition-all duration-300 hover:-translate-y-1 cursor-pointer overflow-hidden ${
+                  isPriority 
+                    ? 'bg-gradient-to-br from-white to-slate-50 border-slate-200 shadow-xl' 
+                    : 'bg-white/40 border-white/60 hover:bg-white hover:shadow-lg'
+                }`}
               >
-                <div className="flex items-start justify-between mb-8">
-                  <div className="w-16 h-16 rounded-2xl bg-white/80 backdrop-blur-sm flex items-center justify-center text-xl font-black shadow-inner border border-white">
-                    {getInitials(member.name)}
+                {/* Online Indicator */}
+                {isOnline && (
+                  <div className="absolute top-4 right-4 w-3 h-3 bg-emerald-500 rounded-full animate-pulse shadow-emerald-200 shadow-lg z-10"></div>
+                )}
+
+                <div className="relative z-10">
+                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-4 transition-colors ${
+                    isPriority ? 'bg-slate-900 text-white shadow-lg' : 'bg-slate-100 text-slate-400 group-hover:bg-slate-900 group-hover:text-white'
+                  }`}>
+                    {member.priority === 0 ? <Star size={20} className="fill-yellow-400 text-yellow-400" /> :
+                     member.priority === 1 ? <ShieldCheck size={20} /> :
+                     member.priority === 2 ? <ShieldCheck size={20} className="opacity-80" /> :
+                     member.priority < 5 ? <Award size={20} /> :
+                     <Users size={20} />
+                    }
                   </div>
-                  {getRoleIcon(member.role) && (
-                     <div className="p-2 bg-white rounded-full shadow-sm">
-                        {getRoleIcon(member.role)}
-                     </div>
-                  )}
+                  
+                  <h4 className="font-artist text-lg font-bold text-slate-900 leading-tight mb-1 truncate">{member.name}</h4>
+                  <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">{member.role}</p>
                 </div>
 
-                <div>
-                   <h4 className="font-artist text-lg font-black text-slate-900 leading-none mb-2 line-clamp-2 min-h-[2.5rem] uppercase tracking-tight">{member.name}</h4>
-                   <p className="text-[10px] font-bold uppercase tracking-widest opacity-60">{member.role}</p>
-                </div>
-
-                <div className="mt-6 pt-4 border-t border-black/5 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <span className="text-[9px] font-black uppercase tracking-widest text-slate-500">Cek Chemistry</span>
-                    <Heart size={14} className="text-pink-400" />
-                </div>
+                {/* Hover Effect BG */}
+                <div className="absolute inset-0 bg-slate-900/5 translate-y-full group-hover:translate-y-0 transition-transform duration-300 rounded-[2rem]"></div>
               </div>
-            );
+             );
           })}
         </div>
 
+        {/* View All Button */}
         {!showAll && (
-          <div className="mt-16 text-center">
+          <div className="flex justify-center mb-20">
             <button 
               onClick={() => setShowAll(true)}
-              className="px-10 py-4 bg-slate-900 text-white rounded-full font-black uppercase tracking-[0.2em] text-[10px] hover:bg-slate-800 transition-all shadow-xl flex items-center gap-3 mx-auto group"
+              className="flex items-center gap-2 px-8 py-4 bg-white border border-slate-200 rounded-full text-[10px] font-black uppercase tracking-widest text-slate-500 hover:bg-slate-50 transition-all shadow-sm group"
             >
-              Lihat Semua Member <ChevronDown size={16} className="group-hover:translate-y-1 transition-transform" />
+              Lihat Semua Anggota <ChevronDown size={14} className="group-hover:translate-y-1 transition-transform" />
             </button>
           </div>
         )}
         
         {showAll && (
-           <div className="mt-16 text-center">
+           <div className="flex justify-center mb-20">
             <button 
               onClick={() => setShowAll(false)}
-              className="px-10 py-4 bg-white text-slate-900 border border-slate-200 rounded-full font-black uppercase tracking-[0.2em] text-[10px] hover:bg-slate-50 transition-all shadow-lg flex items-center gap-3 mx-auto group"
+              className="flex items-center gap-2 px-8 py-4 bg-white border border-slate-200 rounded-full text-[10px] font-black uppercase tracking-widest text-slate-500 hover:bg-slate-50 transition-all shadow-sm group"
             >
-              Sembunyikan <ChevronUp size={16} className="group-hover:-translate-y-1 transition-transform" />
+              Tutup Daftar <ChevronUp size={14} className="group-hover:-translate-y-1 transition-transform" />
             </button>
           </div>
         )}
 
-        {/* Chemistry Modal */}
-        {selectedMember && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-300">
-             <div className="bg-white rounded-[3rem] p-8 max-w-sm w-full shadow-2xl relative animate-in zoom-in-95 duration-300">
-                <button 
-                  onClick={() => setSelectedMember(null)}
-                  className="absolute top-6 right-6 p-2 bg-slate-100 rounded-full hover:bg-slate-200 transition-colors"
-                >
-                  <X size={16} />
-                </button>
-
-                <div className="text-center">
-                   <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center text-2xl font-black mx-auto mb-4 border-4 border-white shadow-lg">
-                      {getInitials(selectedMember.name)}
-                   </div>
-                   <h3 className="font-artist text-2xl font-black text-slate-900 uppercase tracking-tight leading-none mb-1">{selectedMember.name}</h3>
-                   <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-8">{selectedMember.role}</p>
-                   
-                   <div className="bg-slate-50 rounded-3xl p-6 border border-slate-100">
-                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4">Compatibility Check</p>
-                      
-                      {isCalculating ? (
-                        <div className="flex flex-col items-center gap-2 py-4">
-                           <Loader2 size={24} className="animate-spin text-slate-300" />
-                           <span className="text-xs font-bold text-slate-400 animate-pulse">Calculating...</span>
-                        </div>
-                      ) : chemistryResult !== null ? (
-                        <div className="animate-in zoom-in duration-500">
-                           <div className="text-5xl font-artist font-black text-slate-900 mb-2">{chemistryResult}%</div>
-                           <div className="h-2 w-full bg-slate-200 rounded-full overflow-hidden mb-3">
-                              <div className="h-full bg-gradient-to-r from-pink-400 to-purple-500 transition-all duration-1000" style={{ width: `${chemistryResult}%` }}></div>
-                           </div>
-                           <p className="text-xs font-bold text-slate-600 uppercase tracking-wide">{getChemistryStatus(chemistryResult, selectedMember.name)}</p>
-                        </div>
-                      ) : null}
-                   </div>
-                </div>
-             </div>
-          </div>
-        )}
       </div>
+
+      {/* MEMBER DETAIL MODAL & CHEMISTRY CALCULATOR */}
+      {selectedMember && (
+        <div className="fixed inset-0 z-[100] bg-slate-900/80 backdrop-blur-md flex items-center justify-center p-6 animate-in fade-in duration-300">
+           <div className="w-full max-w-md bg-clean rounded-[3rem] p-8 md:p-10 shadow-3xl relative overflow-hidden animate-in zoom-in-95 duration-300 border-[6px] border-white">
+              <button 
+                onClick={() => setSelectedMember(null)}
+                className="absolute top-6 right-6 p-2 bg-slate-100 rounded-full hover:bg-red-500 hover:text-white transition-colors"
+              >
+                 <X size={20} />
+              </button>
+
+              <div className="text-center mb-8">
+                <div className="w-24 h-24 mx-auto bg-slate-900 rounded-[2rem] flex items-center justify-center text-white shadow-2xl rotate-3 mb-6">
+                    {selectedMember.priority === 0 ? <Star size={40} className="fill-yellow-400 text-yellow-400" /> : <Users size={40} />}
+                </div>
+                <h3 className="font-artist text-3xl font-black text-slate-900 leading-tight mb-2">{selectedMember.name}</h3>
+                <div className="inline-block px-4 py-1.5 bg-slate-100 rounded-full">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">{selectedMember.role}</p>
+                </div>
+              </div>
+
+              {/* Chemistry Feature */}
+              {currentUser && (
+                 <div className="bg-gradient-to-br from-pink-50 to-purple-50 rounded-[2.5rem] p-6 border border-pink-100 text-center relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-4 opacity-20"><Heart size={64} className="text-pink-500 rotate-12" /></div>
+                    
+                    <h4 className="font-artist text-lg font-bold text-slate-900 mb-1 relative z-10">Chemistry Check</h4>
+                    <p className="text-[10px] text-slate-400 mb-6 relative z-10">Seberapa cocok kamu dengan {selectedMember.name.split(' ')[0]}?</p>
+
+                    {chemistryResult !== null ? (
+                       <div className="animate-in zoom-in duration-500">
+                          <span className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600">{chemistryResult}%</span>
+                          <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mt-2">
+                            {chemistryResult > 90 ? "SOULMATE DETECTED! ❤️" : chemistryResult > 75 ? "BESTIE MATERIAL! ✨" : "GOOD FRIENDS! 👍"}
+                          </p>
+                       </div>
+                    ) : (
+                       <button 
+                         onClick={calculateChemistry}
+                         disabled={isCalculating}
+                         className="w-full py-4 bg-white text-pink-500 rounded-2xl shadow-lg hover:shadow-xl hover:scale-105 transition-all font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-2"
+                       >
+                          {isCalculating ? <Loader2 className="animate-spin" size={14} /> : <Zap size={14} className="fill-pink-500" />}
+                          {isCalculating ? "Calculating..." : "Cek Kecocokan"}
+                       </button>
+                    )}
+                 </div>
+              )}
+           </div>
+        </div>
+      )}
     </section>
   );
 };

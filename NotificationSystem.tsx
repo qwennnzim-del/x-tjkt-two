@@ -2,14 +2,14 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { db } from './firebase';
 import { collection, query, orderBy, limit, onSnapshot, where } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
-import { MessageSquare, PieChart, Volume2, User as UserIcon, ShieldAlert } from 'lucide-react';
+import { MessageSquare, PieChart, Volume2, User as UserIcon, ShieldAlert, School } from 'lucide-react';
 
-const POP_SOUND = "data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4LjI5LjEwMAAAAAAAAAAAAAAA//tQxAAAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//tQxAAAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//tQxAAAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//tQxAAAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//tQxAAAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//tQxAAAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//tQxAAAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//tQxAAAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//tQxAAAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//tQxAAAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//tQxAAAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//tQxAAAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//tQxAAAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//tQxAAAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//tQxAAAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//tQxAsAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq";
+const POP_SOUND = "data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4LjI5LjEwMAAAAAAAAAAAAAAA//tQxAAAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//tQxAAAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//tQxAAAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//tQxAAAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//tQxAAAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//tQxAAAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//tQxAAAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//tQxAAAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//tQxAAAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//tQxAAAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//tQxAAAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//tQxAAAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//tQxAAAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//tQxAAAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//tQxAAAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//tQxAAAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//tQxAsAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq";
 
 interface Notification {
   id: string;
   name: string;
-  type: 'wall' | 'poll' | 'reply' | 'admin';
+  type: 'wall' | 'poll' | 'reply' | 'admin' | 'login';
   message: string;
   photo?: string;
   isAdmin?: boolean;
@@ -26,7 +26,7 @@ const NotificationSystem = () => {
     audioRef.current.volume = 0.5;
   }, []);
 
-  const triggerNotification = (name: string, type: 'wall' | 'poll' | 'reply' | 'admin', message: string, photo?: string, isAdmin?: boolean) => {
+  const triggerNotification = (name: string, type: 'wall' | 'poll' | 'reply' | 'admin' | 'login', message: string, photo?: string, isAdmin?: boolean) => {
     // Play Sound
     if (audioRef.current) {
       audioRef.current.currentTime = 0;
@@ -91,20 +91,28 @@ const NotificationSystem = () => {
     return () => unsubscribe();
   }, []);
 
-  // LISTENER 3: Login Activity (UPDATED FOR LIVELY FEEL)
+  // LISTENER 3: Login Activity (UPDATED: Menampilkan Sekolah & Status Online)
   useEffect(() => {
-     // Mengambil 10 login terakhir untuk ditampilkan sebagai notifikasi "Online"
-     const q = query(collection(db, "user_logins"), orderBy("timestamp", "desc"), limit(10));
+     // Kita set limit 1 agar hanya mengambil login TERBARU yang masuk secara real-time
+     // Ini mencegah notifikasi spam member lama saat refresh page
+     const q = query(collection(db, "user_logins"), orderBy("timestamp", "desc"), limit(1));
+     
      const unsubscribe = onSnapshot(q, (snapshot) => {
        snapshot.docChanges().forEach((change) => {
-          // Hanya tangkap 'added' untuk menghindari spam saat heartbeat update (modified)
-          // Ini akan memicu notifikasi beruntun saat pertama kali buka web (seolah-olah semua orang sedang online)
-          // Dan juga memicu notifikasi saat ada user baru login real-time.
           if(change.type === "added") {
              const data = change.doc.data();
              if (data.timestamp) {
-                const msg = data.isAdmin ? 'ADMIN IS ONLINE' : 'Sedang Online';
-                triggerNotification(data.name, data.isAdmin ? 'admin' : 'wall', msg, data.photo, data.isAdmin);
+                // Format Pesan: Online • [Nama Sekolah]
+                const schoolName = data.classMajor || 'Sekolah Tidak Diketahui';
+                const msg = data.isAdmin ? 'ADMIN TELAH LOGIN' : `Online • ${schoolName}`;
+                
+                triggerNotification(
+                  data.name, 
+                  data.isAdmin ? 'admin' : 'login', 
+                  msg, 
+                  data.photo, 
+                  data.isAdmin
+                );
              }
           }
        });
@@ -120,7 +128,7 @@ const NotificationSystem = () => {
           className={`relative p-4 rounded-2xl shadow-2xl flex items-center gap-4 animate-in slide-in-from-right fade-in duration-300 w-80 pointer-events-auto border-l-4 overflow-hidden ${
              note.isAdmin 
              ? 'bg-red-950/90 text-red-50 border-red-500 backdrop-blur-md' 
-             : 'bg-slate-900/90 text-white border-white backdrop-blur-md'
+             : 'bg-slate-900/90 text-white border-emerald-400 backdrop-blur-md'
           }`}
         >
           {note.isAdmin && <div className="absolute inset-0 bg-red-500/10 animate-pulse"></div>}
@@ -137,18 +145,21 @@ const NotificationSystem = () => {
                 }}
                />
              ) : (
-                note.type === 'poll' ? <PieChart size={20} /> : note.isAdmin ? <ShieldAlert size={20} /> : <UserIcon size={20} />
+                note.type === 'poll' ? <PieChart size={20} /> : 
+                note.isAdmin ? <ShieldAlert size={20} /> : 
+                note.type === 'login' ? <School size={20} /> :
+                <UserIcon size={20} />
              )}
           </div>
-          <div className="relative z-10">
-            <p className={`text-xs font-black uppercase tracking-widest leading-tight mb-0.5 ${note.isAdmin ? 'text-red-200' : 'text-white'}`}>
+          <div className="relative z-10 w-full overflow-hidden">
+            <p className={`text-xs font-black uppercase tracking-widest leading-tight mb-1 truncate ${note.isAdmin ? 'text-red-200' : 'text-white'}`}>
               {note.name}
             </p>
-            <p className={`text-[10px] font-bold uppercase tracking-wide ${note.isAdmin ? 'text-red-300' : 'text-slate-400'}`}>
+            <p className={`text-[10px] font-bold uppercase tracking-wide truncate ${note.isAdmin ? 'text-red-300' : 'text-emerald-400'}`}>
               {note.message}
             </p>
           </div>
-          <Volume2 size={14} className="text-white/20 ml-auto animate-pulse" />
+          {note.type === 'login' && <div className="w-2 h-2 rounded-full bg-emerald-500 absolute top-4 right-4 animate-pulse"></div>}
         </div>
       ))}
     </div>
