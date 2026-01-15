@@ -30,30 +30,19 @@ const CIANJUR_SCHOOLS = [
   "Lainnya (Luar Cianjur)"
 ];
 
-// KOLEKSI AVATAR "SKETCH AESTHETIC" (Notion Style)
+// KOLEKSI AVATAR LOKAL (Dari folder public/logoSekolah)
+// Pastikan Anda memasukan file gambar bernama avatar1.png s/d avatar10.png di folder tersebut
 const AVATARS = [
-  // 1. FOTO CUSTOM USER (Prioritas Utama)
-  "https://img.sanishtech.com/u/2a6115aa5eb5ea3595ac4bc0d4519179.jpg",
-  "https://img.sanishtech.com/u/3d1f4fd033c3b0634c4ae44d41ff0639.jpg",
-  "https://img.sanishtech.com/u/db15721ab0a8f37db6160f87eb3af40f.jpg",
-  "https://img.sanishtech.com/u/5fc118cbd7ed0a5cb60e0ee59b25fff5.jpg",
-  "https://img.sanishtech.com/u/83ae9abb5e8ec549b59c6c200ecb4667.jpg",
-  "https://img.sanishtech.com/u/3c228ae1dc18de1e4d77b67552d6a825.jpg",
-
-  // 2. Cowok Sketsa Cool
-  "https://api.dicebear.com/9.x/notionists/svg?seed=Felix&backgroundColor=e5e7eb",
-  "https://api.dicebear.com/9.x/notionists/svg?seed=Zack&backgroundColor=e5e7eb",
-  "https://api.dicebear.com/9.x/notionists/svg?seed=Leo&backgroundColor=e5e7eb",
-  "https://api.dicebear.com/9.x/notionists/svg?seed=George&backgroundColor=e5e7eb",
-  
-  // 3. Cewek Sketsa Cantik
-  "https://api.dicebear.com/9.x/notionists/svg?seed=Aneka&backgroundColor=e5e7eb",
-  "https://api.dicebear.com/9.x/notionists/svg?seed=Molly&backgroundColor=e5e7eb",
-  "https://api.dicebear.com/9.x/notionists/svg?seed=Bella&backgroundColor=e5e7eb",
-  "https://api.dicebear.com/9.x/notionists/svg?seed=Lola&backgroundColor=e5e7eb",
-  
-  // 4. Style Spesial (Kacamata / Rambut Unik)
-  "https://api.dicebear.com/9.x/notionists/svg?seed=Midnight&backgroundColor=e5e7eb",
+  "/logoSekolah/avatar1.png",
+  "/logoSekolah/avatar2.png",
+  "/logoSekolah/avatar3.png",
+  "/logoSekolah/avatar4.png",
+  "/logoSekolah/avatar5.png",
+  "/logoSekolah/avatar6.png",
+  "/logoSekolah/avatar7.png",
+  "/logoSekolah/avatar8.png",
+  "/logoSekolah/avatar9.png",
+  "/logoSekolah/avatar10.png",
 ];
 
 const Login: React.FC<LoginProps> = ({ onLogin }) => {
@@ -227,6 +216,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                   className="w-full h-full object-cover" 
                   referrerPolicy="no-referrer"
                   onError={(e) => {
+                    // Fallback: Tampilkan inisial jika foto lokal belum diupload
                     e.currentTarget.src = `https://api.dicebear.com/9.x/initials/svg?seed=${name || 'User'}`;
                   }}
                 />
@@ -379,6 +369,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                     referrerPolicy="no-referrer"
                     onError={(e) => {
+                      // Fallback visual jika gambar lokal tidak ada: tampilkan inisial
                       e.currentTarget.src = `https://api.dicebear.com/9.x/initials/svg?seed=${idx}`;
                     }}
                   />
