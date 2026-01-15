@@ -8,6 +8,9 @@ interface LoginProps {
   onLogin: (userData: { name: string; classMajor: string; isAdmin: boolean; photo?: string }) => void;
 }
 
+// URL LOGO SEKOLAH (Mengarah ke file di folder public)
+const schoolLogoUrl = "/logo-sekolah.png"; 
+
 // DAFTAR SEKOLAH CIANJUR
 const CIANJUR_SCHOOLS = [
   "SMK Negeri 1 Cianjur",
@@ -195,7 +198,20 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
       {/* Login Card */}
       <div className="w-full max-w-md glass rounded-[3rem] p-8 md:p-10 shadow-2xl relative animate-in fade-in zoom-in duration-700 max-h-[90vh] overflow-y-auto no-scrollbar z-10">
-        <div className="text-center mb-6">
+        <div className="text-center mb-6 flex flex-col items-center">
+          {/* SCHOOL LOGO */}
+          <div className="w-16 h-16 mb-4 flex items-center justify-center opacity-90 drop-shadow-md">
+             <img 
+               src={schoolLogoUrl} 
+               alt="School Logo" 
+               className="w-full h-full object-contain"
+               onError={(e) => {
+                 // Fallback jika gambar tidak ditemukan
+                 e.currentTarget.style.display = 'none';
+               }}
+             />
+          </div>
+          
           <span className="font-handwriting text-3xl text-slate-400 block mb-1">Kenalan Dulu Dong</span>
           <h1 className="font-artist text-3xl font-bold text-slate-900 tracking-tight">X TJKT TWO</h1>
         </div>
