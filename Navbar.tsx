@@ -22,6 +22,7 @@ interface ActivityLog {
   message: string;
   time: any; // Firestore timestamp
   photo?: string;
+  isAdmin?: boolean; // Menambahkan field status Admin
 }
 
 const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, user }) => {
@@ -75,7 +76,8 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, user }) =>
                   school: data.classMajor || 'Unknown School',
                   message: 'Sedang Online',
                   time: data.timestamp,
-                  photo: data.photo
+                  photo: data.photo,
+                  isAdmin: data.isAdmin // Ambil status admin
                 });
             }
           });
@@ -95,7 +97,8 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, user }) =>
                   school: 'Member Kelas',
                   message: `Post: "${data.text?.substring(0, 15)}${data.text?.length > 15 ? '...' : ''}"`,
                   time: data.createdAt,
-                  photo: data.photo
+                  photo: data.photo,
+                  isAdmin: data.isAdmin // Ambil status admin postingan
                 });
             }
           });
@@ -219,7 +222,45 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, user }) =>
                       <div className="flex items-center gap-2"><button onClick={handleClearLogs} className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"><Trash2 size={14} /></button><div className="flex items-center gap-1 bg-emerald-100 text-emerald-600 px-2 py-1 rounded-full"><span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span><span className="text-[9px] font-bold">LIVE</span></div></div>
                     </div>
                     <div className="max-h-[50vh] overflow-y-auto p-2 space-y-1">
-                      {loadingNotif ? (<div className="py-8 flex justify-center text-slate-400"><Loader2 size={24} className="animate-spin" /></div>) : activities.length > 0 ? (activities.map((log) => (<div key={log.id} className="flex items-center gap-3 p-3 rounded-2xl hover:bg-slate-50 transition-colors group"><div className="relative shrink-0"><div className="w-10 h-10 rounded-full overflow-hidden border border-slate-200 bg-slate-100 shadow-sm">{log.photo ? (<img src={log.photo} alt="User" className="w-full h-full object-cover" referrerPolicy="no-referrer" onError={(e) => { e.currentTarget.src = `https://api.dicebear.com/9.x/initials/svg?seed=${log.user}`; }}/>) : (<div className="w-full h-full flex items-center justify-center text-slate-300"><UserIcon size={16} /></div>)}</div></div><div className="flex-grow min-w-0"><div className="flex justify-between items-start"><p className="text-xs font-bold text-slate-900 truncate pr-2">{log.user}</p><span className="text-[9px] text-slate-400 font-mono whitespace-nowrap">{formatTime(log.time)}</span></div><div className="flex items-center gap-1.5 mt-0.5">{log.type === 'login' ? <School size={10} className="text-slate-400" /> : <MessageSquare size={10} className="text-slate-400" />}<p className="text-[10px] text-slate-500 truncate font-medium">{log.school || log.message}</p></div></div></div>))) : (<div className="py-12 text-center"><CheckCircle2 size={32} className="mx-auto text-slate-200 mb-2" /><p className="text-slate-400 text-[10px] font-black uppercase tracking-widest">Log Bersih</p></div>)}
+                      {loadingNotif ? (
+                        <div className="py-8 flex justify-center text-slate-400"><Loader2 size={24} className="animate-spin" /></div>
+                      ) : activities.length > 0 ? (
+                        activities.map((log) => (
+                          <div key={log.id} className="flex items-center gap-3 p-3 rounded-2xl hover:bg-slate-50 transition-colors group">
+                            <div className="relative shrink-0">
+                              <div className={`w-10 h-10 rounded-full overflow-hidden border bg-slate-100 shadow-sm ${log.isAdmin ? 'border-blue-200 ring-2 ring-blue-100' : 'border-slate-200'}`}>
+                                {log.photo ? (
+                                  <img src={log.photo} alt="User" className="w-full h-full object-cover" referrerPolicy="no-referrer" onError={(e) => { e.currentTarget.src = `https://api.dicebear.com/9.x/initials/svg?seed=${log.user}`; }}/>
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center text-slate-300"><UserIcon size={16} /></div>
+                                )}
+                              </div>
+                              {/* ADMIN INDICATOR ON AVATAR (OPTIONAL, BUT GOOD FOR CLARITY) */}
+                              {log.isAdmin && (
+                                <div className="absolute -bottom-1 -right-1 bg-blue-500 text-white rounded-full p-0.5 border-2 border-white">
+                                  <CheckCircle2 size={8} />
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex-grow min-w-0">
+                              <div className="flex justify-between items-start">
+                                <div className="flex items-center gap-1 pr-2 max-w-[70%]">
+                                  <p className="text-xs font-bold text-slate-900 truncate">{log.user}</p>
+                                  {/* BLUE CHECK BADGE */}
+                                  {log.isAdmin && <CheckCircle2 size={12} className="text-blue-500 fill-blue-50 shrink-0" />}
+                                </div>
+                                <span className="text-[9px] text-slate-400 font-mono whitespace-nowrap shrink-0">{formatTime(log.time)}</span>
+                              </div>
+                              <div className="flex items-center gap-1.5 mt-0.5">
+                                {log.type === 'login' ? <School size={10} className="text-slate-400" /> : <MessageSquare size={10} className="text-slate-400" />}
+                                <p className="text-[10px] text-slate-500 truncate font-medium">{log.school || log.message}</p>
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="py-12 text-center"><CheckCircle2 size={32} className="mx-auto text-slate-200 mb-2" /><p className="text-slate-400 text-[10px] font-black uppercase tracking-widest">Log Bersih</p></div>
+                      )}
                     </div>
                   </div>
                 )}
