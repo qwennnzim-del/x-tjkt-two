@@ -1,15 +1,33 @@
 
-import React, { useState, useRef } from 'react';
-import { User, School, ArrowRight, CheckCircle2, ShieldCheck, Lock, Sparkles, X, Grid, Loader2 } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { User, School, ArrowRight, CheckCircle2, ShieldCheck, Lock, Sparkles, X, Grid, Loader2, ChevronDown, ChevronUp, Check } from 'lucide-react';
 import { db } from './firebase';
-import { collection, serverTimestamp, setDoc, doc, runTransaction } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+import { collection, serverTimestamp, setDoc, doc } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
 interface LoginProps {
   onLogin: (userData: { name: string; classMajor: string; isAdmin: boolean; photo?: string }) => void;
 }
 
+// DAFTAR SEKOLAH CIANJUR
+const CIANJUR_SCHOOLS = [
+  "SMK Negeri 1 Cianjur",
+  "SMK Negeri 2 Cilaku",
+  "SMA Negeri 1 Cianjur",
+  "SMA Negeri 2 Cianjur",
+  "SMA Pasundan 1 Cianjur",
+  "SMA Mardi Yuana Cianjur",
+  "MAN 1 Cianjur",
+  "SMK Pasundan 1 Cianjur",
+  "SMK Ar-Rahmah Cianjur",
+  "SMK Bunga Persada",
+  "SMK Bela Nusantara",
+  "SMA Negeri 1 Cilaku",
+  "SMA Negeri 1 Karangtengah",
+  "SMK NURUL ISLAM AFFANDIYAH",
+  "Lainnya (Luar Cianjur)"
+];
+
 // KOLEKSI AVATAR "SKETCH AESTHETIC" (Notion Style)
-// Gaya garis tangan (Line Art) yang cool, rapi, dan artistik.
 const AVATARS = [
   // 1. FOTO CUSTOM USER (Prioritas Utama)
   "https://img.sanishtech.com/u/2a6115aa5eb5ea3595ac4bc0d4519179.jpg",
@@ -32,7 +50,7 @@ const AVATARS = [
 
 const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const [name, setName] = useState('');
-  const [classMajor, setClassMajor] = useState('');
+  const [classMajor, setClassMajor] = useState(''); // Menyimpan Nama Sekolah
   const [adminCode, setAdminCode] = useState('');
   const [showAdminField, setShowAdminField] = useState(false);
   const [slideComplete, setSlideComplete] = useState(false);
@@ -41,10 +59,25 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const [showAvatarModal, setShowAvatarModal] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   
+  // State untuk Custom Dropdown
+  const [showSchoolDropdown, setShowSchoolDropdown] = useState(false);
+  
   const sliderRef = useRef<HTMLDivElement>(null);
   const handleRef = useRef<HTMLDivElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const SECRET_ADMIN_CODE = "TJKTAUTH0808";
+
+  // Handle click outside untuk menutup dropdown
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowSchoolDropdown(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const getDeviceDetails = () => {
     const ua = navigator.userAgent;
@@ -109,49 +142,12 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     window.addEventListener('touchend', cleanup);
   };
 
-  // --- HIGH SECURITY CHECK ---
-  const checkAndConsumeAdminQuota = async (): Promise<boolean> => {
-    const configRef = doc(db, "app_settings", "admin_quota");
-
-    try {
-      await runTransaction(db, async (transaction) => {
-        const sfDoc = await transaction.get(configRef);
-        let currentUsage = 1;
-        if (sfDoc.exists()) {
-          const data = sfDoc.data();
-          currentUsage = data.usage !== undefined ? data.usage : 1;
-        }
-        if (currentUsage >= 2) {
-          throw "LIMIT_REACHED";
-        }
-        transaction.set(configRef, { usage: currentUsage + 1 }, { merge: true });
-      });
-      return true; 
-    } catch (e) {
-      if (e === "LIMIT_REACHED") return false; 
-      console.error("Admin verification error:", e);
-      return false; 
-    }
-  };
-
   const triggerLogin = async () => {
     setIsProcessing(true);
     let isAdmin = false;
 
     if (showAdminField && adminCode.length > 0) {
       if (adminCode === SECRET_ADMIN_CODE) {
-        const accessGranted = await checkAndConsumeAdminQuota();
-        
-        if (!accessGranted) {
-          alert("Kode telah dibatas oleh hezell");
-          setSlideComplete(false);
-          setIsProcessing(false);
-          if (handleRef.current) {
-            handleRef.current.style.transform = 'translateX(0px)';
-          }
-          return; 
-        }
-        
         isAdmin = true;
       }
     }
@@ -163,7 +159,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
       
       await setDoc(doc(db, "user_logins", userId), {
         name,
-        classMajor,
+        classMajor, // Disimpan sebagai sekolah
         timestamp: serverTimestamp(),
         lastActive: serverTimestamp(), 
         isAdmin: isAdmin,
@@ -207,7 +203,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                 <img 
                   src={photo} 
                   alt="Selected Avatar" 
-                  className="w-[85%] h-[85%] object-contain drop-shadow-lg" 
+                  className="w-full h-full object-cover" 
                   referrerPolicy="no-referrer"
                   onError={(e) => {
                     e.currentTarget.src = `https://api.dicebear.com/9.x/initials/svg?seed=${name || 'User'}`;
@@ -238,15 +234,47 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
             />
           </div>
 
-          <div className="relative group">
-            <School className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-slate-900 transition-colors" size={20} />
-            <input 
-              type="text" 
-              placeholder="Kelas (e.g. X TJKT 2)" 
-              value={classMajor}
-              onChange={(e) => setClassMajor(e.target.value)}
-              className="w-full pl-12 pr-4 py-4 bg-white/60 border border-slate-200/50 rounded-2xl outline-none focus:ring-2 focus:ring-slate-900/10 focus:bg-white transition-all font-medium text-slate-900 placeholder:text-slate-400"
-            />
+          {/* CUSTOM SCHOOL DROPDOWN */}
+          <div className="relative group" ref={dropdownRef}>
+            <div 
+              onClick={() => setShowSchoolDropdown(!showSchoolDropdown)}
+              className={`w-full pl-12 pr-10 py-4 bg-white/60 border rounded-2xl cursor-pointer flex items-center justify-between transition-all ${showSchoolDropdown ? 'border-slate-900 ring-2 ring-slate-900/10 bg-white' : 'border-slate-200/50 hover:bg-white'}`}
+            >
+              <div className="flex items-center gap-2 overflow-hidden">
+                <School className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-slate-900 transition-colors" size={20} />
+                <span className={`font-medium truncate ${classMajor ? 'text-slate-900' : 'text-slate-400'}`}>
+                  {classMajor || "Pilih Asal Sekolah"}
+                </span>
+              </div>
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">
+                {showSchoolDropdown ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+              </div>
+            </div>
+
+            {/* THE CUSTOM POPUP / DROPDOWN MENU */}
+            {showSchoolDropdown && (
+              <div className="absolute top-full left-0 w-full mt-2 bg-white rounded-3xl shadow-2xl border border-slate-100 z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 max-h-60 overflow-y-auto no-scrollbar">
+                <div className="p-2 space-y-1">
+                  {CIANJUR_SCHOOLS.map((school, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => {
+                        setClassMajor(school);
+                        setShowSchoolDropdown(false);
+                      }}
+                      className={`w-full text-left px-4 py-3 rounded-2xl text-sm font-bold transition-all flex items-center justify-between ${
+                        classMajor === school 
+                        ? 'bg-slate-900 text-white shadow-lg' 
+                        : 'text-slate-600 hover:bg-slate-50'
+                      }`}
+                    >
+                      {school}
+                      {classMajor === school && <Check size={16} className="text-emerald-400" />}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {showAdminField && (
@@ -276,7 +304,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
         {/* Custom Slider Confirmation */}
         <div className="mt-8">
           <p className="text-center text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-4">
-            {!isFormValid ? 'Lengkapi Nama & Kelas' : slideComplete ? (isProcessing ? 'Verifying...' : 'Access Granted!') : 'Geser untuk Gabung'}
+            {!isFormValid ? 'Lengkapi Nama & Sekolah' : slideComplete ? (isProcessing ? 'Verifying...' : 'Access Granted!') : 'Geser untuk Gabung'}
           </p>
           
           <div 
@@ -322,15 +350,12 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                     setPhoto(avatarUrl);
                     setShowAvatarModal(false);
                   }}
-                  className={`relative group aspect-square rounded-2xl overflow-hidden border-2 transition-all duration-300 hover:scale-105 bg-white flex items-center justify-center ${photo === avatarUrl ? 'border-emerald-500 ring-4 ring-emerald-500/20 shadow-xl' : 'border-slate-200 hover:border-slate-900'}`}
+                  className={`relative group aspect-square rounded-full overflow-hidden border-2 transition-all duration-300 hover:scale-105 bg-white flex items-center justify-center ${photo === avatarUrl ? 'border-emerald-500 ring-4 ring-emerald-500/20 shadow-xl' : 'border-slate-200 hover:border-slate-900'}`}
                 >
-                  {/* Efek Glow di belakang avatar */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-100 to-transparent opacity-50"></div>
-                  
                   <img 
                     src={avatarUrl} 
                     alt={`Avatar ${idx + 1}`} 
-                    className="w-[80%] h-[80%] object-contain drop-shadow-md relative z-10 group-hover:scale-110 transition-transform duration-300"
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                     referrerPolicy="no-referrer"
                     onError={(e) => {
                       e.currentTarget.src = `https://api.dicebear.com/9.x/initials/svg?seed=${idx}`;
