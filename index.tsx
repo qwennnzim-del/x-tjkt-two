@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
-import { Bot, StickyNote, Users2, Film, ArrowRight, Loader2 } from 'lucide-react';
+import { Bot, StickyNote, Users2, Film, ArrowRight, Loader2, Hammer, AlertTriangle, Construction } from 'lucide-react';
 import Navbar from './Navbar';
 import Home from './Home';
 import About from './About';
@@ -22,6 +22,47 @@ import Calculator from './Calculator';
 import Cursor from './Cursor';
 import { db } from './firebase';
 import { doc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+
+// --- MAINTENANCE SCREEN COMPONENT ---
+const MaintenanceScreen = () => {
+  return (
+    <div className="fixed inset-0 z-[9999] bg-slate-950 flex flex-col items-center justify-center p-6 text-center overflow-hidden selection:bg-yellow-500 selection:text-black">
+      {/* Background Ambience */}
+      <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
+        <div className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] bg-yellow-600 rounded-full blur-[150px] animate-pulse"></div>
+        <div className="absolute bottom-[-10%] right-[-10%] w-[50vw] h-[50vw] bg-slate-800 rounded-full blur-[150px]"></div>
+      </div>
+
+      {/* Content */}
+      <div className="relative z-10 max-w-2xl animate-in zoom-in duration-500">
+         <div className="w-24 h-24 mx-auto mb-8 bg-slate-900 border border-slate-800 rounded-3xl flex items-center justify-center shadow-2xl shadow-yellow-500/10">
+            <Construction size={48} className="text-yellow-500 animate-bounce" />
+         </div>
+
+         <h1 className="font-artist text-6xl md:text-8xl font-black text-white tracking-tighter mb-4 leading-none">
+           LAGI <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500">DIUPLIK</span>
+         </h1>
+         
+         <div className="bg-slate-900/50 backdrop-blur-md border border-slate-800 p-6 rounded-3xl mb-8">
+           <p className="font-handwriting text-3xl text-slate-300 mb-2">
+             "Bentar ya, Mimin lagi nambahin 10 Avatar Baru!"
+           </p>
+           <p className="text-xs font-mono text-slate-500 uppercase tracking-widest">
+             Estimated Time: Sampai Mimin Selesai Ngopi
+           </p>
+         </div>
+
+         <div className="flex flex-col items-center gap-4">
+            <div className="flex items-center gap-2 px-6 py-3 bg-yellow-500/10 border border-yellow-500/20 rounded-full">
+              <Loader2 size={16} className="text-yellow-500 animate-spin" />
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-yellow-500">System Maintenance</span>
+            </div>
+            <p className="text-[9px] text-slate-600 font-bold uppercase tracking-widest">X TJKT TWO • 2026</p>
+         </div>
+      </div>
+    </div>
+  );
+};
 
 // --- FEATURE TOUR COMPONENT (ONBOARDING) ---
 interface FeatureTourProps {
@@ -104,6 +145,9 @@ interface UserData {
 }
 
 const App = () => {
+  // --- STATUS MAINTENANCE (Ubah ke false jika sudah selesai upload) ---
+  const [isMaintenance, setIsMaintenance] = useState(false); 
+
   const [currentPage, setCurrentPage] = useState('home');
   const [user, setUser] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -153,6 +197,11 @@ const App = () => {
     setUser(updatedData);
     localStorage.setItem('tjkt_session', JSON.stringify(updatedData));
   };
+
+  // --- RENDER MAINTENANCE CHECK ---
+  if (isMaintenance) {
+    return <MaintenanceScreen />;
+  }
 
   const renderPage = () => {
     switch (currentPage) {
