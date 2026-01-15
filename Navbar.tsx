@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Menu, X, User as UserIcon, LogOut, Bell, ShieldAlert, MessageSquare, Loader2, Clock } from 'lucide-react';
+import { Menu, X, User as UserIcon, LogOut, Bell, ShieldAlert, MessageSquare, Loader2, Clock, School } from 'lucide-react';
 import { db } from './firebase';
 import { collection, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
@@ -18,6 +18,7 @@ interface ActivityLog {
   id: string;
   type: 'login' | 'post';
   user: string;
+  school?: string; // Menambahkan field Sekolah
   message: string;
   time: any; // Firestore timestamp
   photo?: string;
@@ -60,7 +61,8 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, user }) =>
               id: 'login_' + doc.id,
               type: 'login',
               user: data.name,
-              message: 'Login ke sistem',
+              school: data.classMajor || 'Unknown School', // Ambil data sekolah
+              message: 'Sedang Online',
               time: data.timestamp,
               photo: data.photo
             });
@@ -75,7 +77,8 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, user }) =>
               id: 'post_' + doc.id,
               type: 'post',
               user: data.sender,
-              message: `Posting: "${data.text?.substring(0, 20)}${data.text?.length > 20 ? '...' : ''}"`,
+              school: 'Member Kelas', // Default untuk wall post jika tidak join table
+              message: `Post: "${data.text?.substring(0, 15)}${data.text?.length > 15 ? '...' : ''}"`,
               time: data.createdAt,
               photo: data.photo
             });
@@ -176,10 +179,16 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, user }) =>
 
                 {/* NOTIFICATION POPUP DROPDOWN */}
                 {showNotif && (
-                  <div className="absolute top-full right-0 mt-3 w-80 bg-white/90 backdrop-blur-xl rounded-[2rem] shadow-2xl border border-white/50 overflow-hidden animate-in fade-in zoom-in-95 duration-200 origin-top-right">
-                    <div className="p-4 border-b border-slate-100 bg-slate-50/50">
-                      <h4 className="font-artist text-lg font-bold text-slate-900">Activity Log</h4>
-                      <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Terpantau 24/7 oleh Sistem</p>
+                  <div className="absolute top-full right-0 mt-3 w-80 sm:w-96 bg-white/90 backdrop-blur-xl rounded-[2rem] shadow-2xl border border-white/50 overflow-hidden animate-in fade-in zoom-in-95 duration-200 origin-top-right">
+                    <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
+                      <div>
+                        <h4 className="font-artist text-lg font-bold text-slate-900">Activity Log</h4>
+                        <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Realtime User Monitor</p>
+                      </div>
+                      <div className="flex items-center gap-1 bg-emerald-100 text-emerald-600 px-2 py-1 rounded-full">
+                         <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
+                         <span className="text-[9px] font-bold">LIVE</span>
+                      </div>
                     </div>
                     
                     <div className="max-h-80 overflow-y-auto p-2 space-y-1">
@@ -189,17 +198,49 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, user }) =>
                         </div>
                       ) : activities.length > 0 ? (
                         activities.map((log) => (
-                          <div key={log.id} className="flex items-start gap-3 p-3 rounded-2xl hover:bg-slate-50 transition-colors">
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${log.type === 'login' ? 'bg-blue-100 text-blue-600' : 'bg-pink-100 text-pink-600'}`}>
-                              {log.type === 'login' ? <UserIcon size={14} /> : <MessageSquare size={14} />}
+                          <div key={log.id} className="flex items-center gap-3 p-3 rounded-2xl hover:bg-slate-50 transition-colors group">
+                            
+                            {/* AVATAR + ONLINE INDICATOR */}
+                            <div className="relative shrink-0">
+                               <div className="w-10 h-10 rounded-full overflow-hidden border border-slate-200 bg-slate-100 shadow-sm">
+                                  {log.photo ? (
+                                    <img 
+                                      src={log.photo} 
+                                      alt="User" 
+                                      className="w-full h-full object-cover"
+                                      referrerPolicy="no-referrer"
+                                      onError={(e) => {
+                                        e.currentTarget.src = `https://api.dicebear.com/9.x/initials/svg?seed=${log.user}`;
+                                      }}
+                                    />
+                                  ) : (
+                                    <div className="w-full h-full flex items-center justify-center text-slate-300">
+                                      <UserIcon size={16} />
+                                    </div>
+                                  )}
+                               </div>
+                               {/* Green Dot for Online Status */}
+                               {log.type === 'login' && (
+                                 <div className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full animate-pulse shadow-sm"></div>
+                               )}
                             </div>
+
                             <div className="flex-grow min-w-0">
-                              <p className="text-xs font-bold text-slate-900 truncate">{log.user}</p>
-                              <p className="text-[10px] text-slate-500 truncate">{log.message}</p>
-                            </div>
-                            <div className="flex items-center gap-1 text-[9px] font-bold text-slate-400 whitespace-nowrap">
-                              <Clock size={10} />
-                              {formatTime(log.time)}
+                              <div className="flex justify-between items-start">
+                                <p className="text-xs font-bold text-slate-900 truncate pr-2">{log.user}</p>
+                                <span className="text-[9px] text-slate-400 font-mono whitespace-nowrap">{formatTime(log.time)}</span>
+                              </div>
+                              
+                              <div className="flex items-center gap-1.5 mt-0.5">
+                                 {log.type === 'login' ? (
+                                   <School size={10} className="text-slate-400" />
+                                 ) : (
+                                   <MessageSquare size={10} className="text-slate-400" />
+                                 )}
+                                 <p className="text-[10px] text-slate-500 truncate font-medium">
+                                   {log.school || log.message}
+                                 </p>
+                              </div>
                             </div>
                           </div>
                         ))
