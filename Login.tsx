@@ -8,16 +8,26 @@ interface LoginProps {
   onLogin: (userData: { name: string; classMajor: string; isAdmin: boolean; photo?: string }) => void;
 }
 
+// KOLEKSI AVATAR "SKETCH AESTHETIC" (Notion Style)
+// Gaya garis tangan (Line Art) yang cool, rapi, dan artistik.
 const AVATARS = [
-  "https://img.sanishtech.com/u/9ccea957849bb7793480e98a39f3c0c9.jpg",
-  "https://img.sanishtech.com/u/a8715b0203becd730da838f2a29512e5.jpg",
-  "https://img.sanishtech.com/u/1fc38868e47381608e77290305c4ea85.jpg",
-  "https://img.sanishtech.com/u/b6bbe3fe81124325572b15cc11552700.jpg",
-  "https://img.sanishtech.com/u/fcf2603aaff914b3c1edf19dfdd9c778.jpg",
-  "https://img.sanishtech.com/u/9ad6340a9f401792f3d8bc85f5d788cd.jpg",
-  "https://img.sanishtech.com/u/4775236e062447d43b5cb56361fc1159.jpg",
-  "https://img.sanishtech.com/u/0f1a2324bf297cf99e45fd402df48465.jpg",
-  "https://img.sanishtech.com/u/7376f9dec64c42a53e23cac6b8bcfa16.jpg"
+  // 1. FOTO CUSTOM USER (Prioritas Utama)
+  "https://img.sanishtech.com/u/2a6115aa5eb5ea3595ac4bc0d4519179.jpg",
+
+  // 2. Cowok Sketsa Cool
+  "https://api.dicebear.com/9.x/notionists/svg?seed=Felix&backgroundColor=e5e7eb",
+  "https://api.dicebear.com/9.x/notionists/svg?seed=Zack&backgroundColor=e5e7eb",
+  "https://api.dicebear.com/9.x/notionists/svg?seed=Leo&backgroundColor=e5e7eb",
+  "https://api.dicebear.com/9.x/notionists/svg?seed=George&backgroundColor=e5e7eb",
+  
+  // 3. Cewek Sketsa Cantik
+  "https://api.dicebear.com/9.x/notionists/svg?seed=Aneka&backgroundColor=e5e7eb",
+  "https://api.dicebear.com/9.x/notionists/svg?seed=Molly&backgroundColor=e5e7eb",
+  "https://api.dicebear.com/9.x/notionists/svg?seed=Bella&backgroundColor=e5e7eb",
+  "https://api.dicebear.com/9.x/notionists/svg?seed=Lola&backgroundColor=e5e7eb",
+  
+  // 4. Style Spesial (Kacamata / Rambut Unik)
+  "https://api.dicebear.com/9.x/notionists/svg?seed=Midnight&backgroundColor=e5e7eb",
 ];
 
 const Login: React.FC<LoginProps> = ({ onLogin }) => {
@@ -106,31 +116,21 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     try {
       await runTransaction(db, async (transaction) => {
         const sfDoc = await transaction.get(configRef);
-        
-        // Logika: 
-        // Jika dokumen belum ada, kita asumsikan 1 pemakaian sudah terjadi (History User).
-        // Jadi currentUsage default = 1.
         let currentUsage = 1;
-
         if (sfDoc.exists()) {
           const data = sfDoc.data();
-          // Jika ada data, gunakan data tersebut. 
           currentUsage = data.usage !== undefined ? data.usage : 1;
         }
-
-        // Batas Maksimal = 2
         if (currentUsage >= 2) {
           throw "LIMIT_REACHED";
         }
-
-        // Increment Usage
         transaction.set(configRef, { usage: currentUsage + 1 }, { merge: true });
       });
-      return true; // Sukses, kuota masih ada
+      return true; 
     } catch (e) {
-      if (e === "LIMIT_REACHED") return false; // Gagal, kuota habis
+      if (e === "LIMIT_REACHED") return false; 
       console.error("Admin verification error:", e);
-      return false; // Fail safe
+      return false; 
     }
   };
 
@@ -138,21 +138,18 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     setIsProcessing(true);
     let isAdmin = false;
 
-    // Jika user mencoba login sebagai admin
     if (showAdminField && adminCode.length > 0) {
       if (adminCode === SECRET_ADMIN_CODE) {
-        // Cek Kuota di Database
         const accessGranted = await checkAndConsumeAdminQuota();
         
         if (!accessGranted) {
           alert("Kode telah dibatas oleh hezell");
           setSlideComplete(false);
           setIsProcessing(false);
-          // Reset slider visuals
           if (handleRef.current) {
             handleRef.current.style.transform = 'translateX(0px)';
           }
-          return; // Stop login process
+          return; 
         }
         
         isAdmin = true;
@@ -162,7 +159,6 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     const deviceInfo = getDeviceDetails();
     
     try {
-      // 1. Simpan Data Login untuk History & Notifikasi
       const userId = name.toLowerCase().replace(/\s+/g, '_');
       
       await setDoc(doc(db, "user_logins", userId), {
@@ -206,9 +202,17 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
         {/* PHOTO SELECTION CIRCLE */}
         <div className="flex justify-center mb-8">
           <div className="relative group cursor-pointer" onClick={() => setShowAvatarModal(true)}>
-            <div className={`w-32 h-32 rounded-full overflow-hidden border-4 shadow-xl transition-all duration-300 ${photo ? 'border-slate-900' : 'border-dashed border-slate-300 bg-slate-50'}`}>
+            <div className={`w-32 h-32 rounded-full overflow-hidden border-4 shadow-xl transition-all duration-300 flex items-center justify-center bg-white ${photo ? 'border-slate-900' : 'border-dashed border-slate-300 bg-slate-50'}`}>
               {photo ? (
-                <img src={photo} alt="Selected Avatar" className="w-full h-full object-cover" />
+                <img 
+                  src={photo} 
+                  alt="Selected Avatar" 
+                  className="w-[85%] h-[85%] object-contain drop-shadow-lg" 
+                  referrerPolicy="no-referrer"
+                  onError={(e) => {
+                    e.currentTarget.src = `https://api.dicebear.com/9.x/initials/svg?seed=${name || 'User'}`;
+                  }}
+                />
               ) : (
                 <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 gap-2 hover:bg-slate-100 transition-colors">
                   <Sparkles size={32} className="text-blue-400" />
@@ -294,7 +298,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
         </div>
       </div>
 
-      {/* AVATAR SELECTOR MODAL */}
+      {/* AVATAR SELECTOR MODAL 3D */}
       {showAvatarModal && (
         <div className="fixed inset-0 z-[120] bg-slate-900/80 backdrop-blur-md flex items-center justify-center p-6 animate-in fade-in duration-300">
           <div className="w-full max-w-lg bg-clean rounded-[3rem] p-8 shadow-3xl relative overflow-hidden animate-in zoom-in-95 duration-300 border-4 border-white">
@@ -306,8 +310,8 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
             </button>
             
             <div className="text-center mb-8">
-              <h3 className="font-artist text-3xl font-bold text-slate-900">Pilih Karaktermu</h3>
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mt-2">Tentukan vibe kamu hari ini!</p>
+              <h3 className="font-artist text-3xl font-bold text-slate-900">Pilih Karakter</h3>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mt-2">Sketch Style Aesthetic</p>
             </div>
 
             <div className="grid grid-cols-3 gap-4 max-h-[50vh] overflow-y-auto no-scrollbar p-2">
@@ -318,12 +322,24 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                     setPhoto(avatarUrl);
                     setShowAvatarModal(false);
                   }}
-                  className={`relative group aspect-square rounded-2xl overflow-hidden border-2 transition-all duration-300 hover:scale-105 ${photo === avatarUrl ? 'border-emerald-500 ring-4 ring-emerald-500/20' : 'border-slate-200 hover:border-slate-900'}`}
+                  className={`relative group aspect-square rounded-2xl overflow-hidden border-2 transition-all duration-300 hover:scale-105 bg-white flex items-center justify-center ${photo === avatarUrl ? 'border-emerald-500 ring-4 ring-emerald-500/20 shadow-xl' : 'border-slate-200 hover:border-slate-900'}`}
                 >
-                  <img src={avatarUrl} alt={`Avatar ${idx + 1}`} className="w-full h-full object-cover" />
+                  {/* Efek Glow di belakang avatar */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-100 to-transparent opacity-50"></div>
+                  
+                  <img 
+                    src={avatarUrl} 
+                    alt={`Avatar ${idx + 1}`} 
+                    className="w-[80%] h-[80%] object-contain drop-shadow-md relative z-10 group-hover:scale-110 transition-transform duration-300"
+                    referrerPolicy="no-referrer"
+                    onError={(e) => {
+                      e.currentTarget.src = `https://api.dicebear.com/9.x/initials/svg?seed=${idx}`;
+                    }}
+                  />
+                  
                   {photo === avatarUrl && (
-                    <div className="absolute inset-0 bg-emerald-500/20 flex items-center justify-center">
-                      <CheckCircle2 size={24} className="text-emerald-500 drop-shadow-md bg-white rounded-full" />
+                    <div className="absolute top-2 right-2 bg-emerald-500 text-white rounded-full p-1 shadow-md z-20">
+                      <CheckCircle2 size={12} />
                     </div>
                   )}
                 </button>
@@ -336,8 +352,8 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
       {/* Success Notification */}
       {showNotification && (
         <div className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-8 py-4 rounded-full flex items-center gap-4 animate-in slide-in-from-bottom-10 fade-in duration-500 shadow-2xl z-[130]">
-          <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-white">
-             {photo ? <img src={photo} alt="Me" className="w-full h-full object-cover" /> : <User size={20} className="m-auto mt-2" />}
+          <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-white bg-white">
+             {photo ? <img src={photo} alt="Me" className="w-full h-full object-contain" /> : <User size={20} className="m-auto mt-2 text-slate-900" />}
           </div>
           <div>
             <p className="font-bold text-sm">

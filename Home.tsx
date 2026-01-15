@@ -62,7 +62,15 @@ const Home: React.FC<HomeProps> = ({ onExplore, user }) => {
             >
               <div className="w-full h-full rounded-full overflow-hidden bg-white border-4 border-white">
                 {user.photo ? (
-                  <img src={user.photo} alt="Me" className="w-full h-full object-cover" />
+                  <img 
+                    src={user.photo} 
+                    alt="Me" 
+                    className="w-full h-full object-cover" 
+                    referrerPolicy="no-referrer"
+                    onError={(e) => {
+                      e.currentTarget.src = `https://api.dicebear.com/9.x/initials/svg?seed=${user.name}`;
+                    }}
+                  />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-slate-300">
                     <UserIcon size={32} />

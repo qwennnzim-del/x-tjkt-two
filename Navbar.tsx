@@ -146,7 +146,18 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, user }) =>
                           return (
                             <div key={login.id} className="flex gap-4 p-3 rounded-2xl bg-white/40 border border-white/60">
                               <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-slate-100 shrink-0">
-                                {login.photo ? <img src={login.photo} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center bg-slate-50"><UserIcon size={16}/></div>}
+                                {login.photo ? (
+                                  <img 
+                                    src={login.photo} 
+                                    className="w-full h-full object-cover" 
+                                    referrerPolicy="no-referrer"
+                                    onError={(e) => {
+                                      e.currentTarget.src = `https://api.dicebear.com/9.x/initials/svg?seed=${login.name}`;
+                                    }}
+                                  />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center bg-slate-50"><UserIcon size={16}/></div>
+                                )}
                               </div>
                               <div className="flex-grow">
                                 <div className="flex items-center justify-between">
@@ -168,7 +179,18 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, user }) =>
             {/* PROFILE BUTTON */}
             <button onClick={() => handleNavClick('profile')} className={`hidden lg:flex items-center gap-3 p-1 pr-4 rounded-full transition-all border ${currentPage === 'profile' ? 'bg-slate-900 text-white' : 'bg-white border-slate-100 text-slate-900'}`}>
               <div className="w-8 h-8 rounded-full overflow-hidden bg-slate-200 border border-white shrink-0">
-                {user.photo ? <img src={user.photo} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center"><UserIcon size={14} /></div>}
+                {user.photo ? (
+                  <img 
+                    src={user.photo} 
+                    className="w-full h-full object-cover" 
+                    referrerPolicy="no-referrer"
+                    onError={(e) => {
+                      e.currentTarget.src = `https://api.dicebear.com/9.x/initials/svg?seed=${user.name}`;
+                    }}
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center"><UserIcon size={14} /></div>
+                )}
               </div>
               <span className="text-[9px] font-black uppercase tracking-tighter truncate max-w-[80px]">{user.name.split(' ')[0]}</span>
             </button>
@@ -200,7 +222,18 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, user }) =>
             
             <button onClick={() => handleNavClick('profile')} className="flex items-center gap-4 py-3 group">
                <div className="w-10 h-10 rounded-full overflow-hidden border border-slate-200">
-                  {user.photo ? <img src={user.photo} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center bg-slate-100 text-slate-400"><UserIcon size={16}/></div>}
+                  {user.photo ? (
+                    <img 
+                      src={user.photo} 
+                      className="w-full h-full object-cover" 
+                      referrerPolicy="no-referrer"
+                      onError={(e) => {
+                        e.currentTarget.src = `https://api.dicebear.com/9.x/initials/svg?seed=${user.name}`;
+                      }}
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-slate-100 text-slate-400"><UserIcon size={16}/></div>
+                  )}
                </div>
                <div className="text-left">
                   <p className="text-xs font-black uppercase text-slate-900">{user.name}</p>

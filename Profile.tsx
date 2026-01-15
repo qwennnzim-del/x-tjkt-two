@@ -85,7 +85,15 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpdate }) => {
               <div className="w-40 h-40 rounded-full p-1 bg-gradient-to-tr from-slate-200 to-slate-400 shadow-2xl overflow-hidden mb-6">
                 <div className="w-full h-full rounded-full overflow-hidden bg-white border-4 border-white">
                   {photo ? (
-                    <img src={photo} alt="Profile" className="w-full h-full object-cover" />
+                    <img 
+                      src={photo} 
+                      alt="Profile" 
+                      className="w-full h-full object-cover" 
+                      referrerPolicy="no-referrer"
+                      onError={(e) => {
+                        e.currentTarget.src = `https://api.dicebear.com/9.x/initials/svg?seed=${name}`;
+                      }}
+                    />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-slate-200">
                       <UserIcon size={64} />

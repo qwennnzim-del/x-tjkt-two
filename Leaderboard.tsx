@@ -125,7 +125,15 @@ const Leaderboard: React.FC = () => {
 
                       <div className="w-12 h-12 md:w-14 md:h-14 rounded-full overflow-hidden border-2 border-white shadow-sm bg-slate-100 shrink-0">
                         {entry.photo ? (
-                          <img src={entry.photo} alt="U" className="w-full h-full object-cover" />
+                          <img 
+                            src={entry.photo} 
+                            alt="U" 
+                            className="w-full h-full object-cover" 
+                            referrerPolicy="no-referrer"
+                            onError={(e) => {
+                              e.currentTarget.src = `https://api.dicebear.com/9.x/initials/svg?seed=${entry.name}`;
+                            }}
+                          />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-slate-300">
                             <UserIcon size={20} />

@@ -10,7 +10,7 @@ import {
   orderBy, 
   serverTimestamp,
   deleteDoc,
-  doc,
+  doc, 
   updateDoc,
   increment,
   arrayUnion
@@ -306,7 +306,15 @@ const GlobalWall: React.FC<GlobalWallProps> = ({ user }) => {
                   <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-full overflow-hidden border-2 border-white bg-white/50 shadow-sm shrink-0">
                       {note.photo ? (
-                        <img src={note.photo} alt={note.sender} className="w-full h-full object-cover" />
+                        <img 
+                          src={note.photo} 
+                          alt={note.sender} 
+                          className="w-full h-full object-cover" 
+                          referrerPolicy="no-referrer"
+                          onError={(e) => {
+                             e.currentTarget.src = `https://api.dicebear.com/9.x/initials/svg?seed=${note.sender}`;
+                          }}
+                        />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-slate-400">
                           <UserIcon size={14} />
@@ -393,7 +401,15 @@ const GlobalWall: React.FC<GlobalWallProps> = ({ user }) => {
                           <div key={rIdx} className="flex gap-2.5 items-start bg-white/40 p-3 rounded-2xl">
                              <div className="w-6 h-6 rounded-full overflow-hidden bg-slate-100 border border-white shrink-0">
                                 {reply.photo ? (
-                                  <img src={reply.photo} alt={reply.sender} className="w-full h-full object-cover" />
+                                  <img 
+                                    src={reply.photo} 
+                                    alt={reply.sender} 
+                                    className="w-full h-full object-cover" 
+                                    referrerPolicy="no-referrer"
+                                    onError={(e) => {
+                                      e.currentTarget.src = `https://api.dicebear.com/9.x/initials/svg?seed=${reply.sender}`;
+                                    }}
+                                  />
                                 ) : (
                                   <div className="w-full h-full flex items-center justify-center text-slate-300"><UserIcon size={12}/></div>
                                 )}
