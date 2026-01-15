@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Menu, X, User as UserIcon, LogOut, Bell, ShieldAlert, MessageSquare, Loader2, Clock, School } from 'lucide-react';
+import { Menu, X, User as UserIcon, LogOut, Bell, ShieldAlert, MessageSquare, Loader2, Clock, School, Trash2, CheckCircle2 } from 'lucide-react';
 import { db } from './firebase';
 import { collection, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
@@ -33,15 +33,16 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, user }) =>
   const [loadingNotif, setLoadingNotif] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
 
+  // NAVIGATION ITEMS (Rebranded to Gen Z / Aesthetic Terms)
   const navLinks = [
-    { name: 'Home', id: 'home' },
-    { name: 'Vibes', id: 'about' },
-    { name: 'Squad', id: 'members' },
-    { name: 'Wall', id: 'wall' },
-    { name: 'Jadwal', id: 'schedule' },
-    { name: 'Vote', id: 'voting' },
-    { name: 'Game', id: 'quiz' },
-    { name: 'Calc', id: 'calculator' },
+    { name: 'Base', id: 'home' },       // Home -> Base (Basecamp)
+    { name: 'Vibes', id: 'about' },     // About/Gallery -> Vibes
+    { name: 'Circle', id: 'members' },  // Members -> Circle/Gang
+    { name: 'Spill', id: 'wall' },      // Wall -> Spill (Spill Tea)
+    { name: 'Plan', id: 'schedule' },   // Schedule -> Plan
+    { name: 'Vote', id: 'voting' },     // Vote -> Vote
+    { name: 'Play', id: 'quiz' },       // Quiz -> Play
+    { name: 'Math', id: 'calculator' }, // Calculator -> Math
   ];
 
   // Fetch Data Notifikasi saat Lonceng diklik
@@ -50,22 +51,30 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, user }) =>
       const fetchActivities = async () => {
         setLoadingNotif(true);
         try {
+          // Cek timestamp terakhir dihapus dari LocalStorage
+          const lastClearedTime = parseInt(localStorage.getItem('tjkt_log_cleared_at') || '0');
+
           const logs: ActivityLog[] = [];
 
           // 1. Ambil 5 Login Terakhir
-          const loginQ = query(collection(db, "user_logins"), orderBy("timestamp", "desc"), limit(5));
+          const loginQ = query(collection(db, "user_logins"), orderBy("timestamp", "desc"), limit(8));
           const loginSnap = await getDocs(loginQ);
           loginSnap.forEach(doc => {
             const data = doc.data();
-            logs.push({
-              id: 'login_' + doc.id,
-              type: 'login',
-              user: data.name,
-              school: data.classMajor || 'Unknown School', // Ambil data sekolah
-              message: 'Sedang Online',
-              time: data.timestamp,
-              photo: data.photo
-            });
+            // Filter berdasarkan waktu clear
+            const docTime = data.timestamp?.seconds * 1000 || 0;
+            
+            if (docTime > lastClearedTime) {
+                logs.push({
+                  id: 'login_' + doc.id,
+                  type: 'login',
+                  user: data.name,
+                  school: data.classMajor || 'Unknown School',
+                  message: 'Sedang Online',
+                  time: data.timestamp,
+                  photo: data.photo
+                });
+            }
           });
 
           // 2. Ambil 5 Postingan Wall Terakhir
@@ -73,15 +82,20 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, user }) =>
           const wallSnap = await getDocs(wallQ);
           wallSnap.forEach(doc => {
             const data = doc.data();
-            logs.push({
-              id: 'post_' + doc.id,
-              type: 'post',
-              user: data.sender,
-              school: 'Member Kelas', // Default untuk wall post jika tidak join table
-              message: `Post: "${data.text?.substring(0, 15)}${data.text?.length > 15 ? '...' : ''}"`,
-              time: data.createdAt,
-              photo: data.photo
-            });
+            // Filter berdasarkan waktu clear
+            const docTime = data.createdAt?.seconds * 1000 || 0;
+
+            if (docTime > lastClearedTime) {
+                logs.push({
+                  id: 'post_' + doc.id,
+                  type: 'post',
+                  user: data.sender,
+                  school: 'Member Kelas',
+                  message: `Post: "${data.text?.substring(0, 15)}${data.text?.length > 15 ? '...' : ''}"`,
+                  time: data.createdAt,
+                  photo: data.photo
+                });
+            }
           });
 
           // Gabungkan dan Sortir berdasarkan waktu terbaru
@@ -91,7 +105,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, user }) =>
              return timeB - timeA;
           });
 
-          setActivities(logs.slice(0, 8)); // Ambil 8 teratas gabungan
+          setActivities(logs.slice(0, 10)); // Ambil 10 teratas gabungan
         } catch (error) {
           console.error("Error fetching notifs", error);
         } finally {
@@ -102,6 +116,14 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, user }) =>
       fetchActivities();
     }
   }, [showNotif, user.isAdmin]);
+
+  // Handle Clear Log
+  const handleClearLogs = () => {
+      // Simpan waktu sekarang sebagai titik clear
+      const now = Date.now();
+      localStorage.setItem('tjkt_log_cleared_at', now.toString());
+      setActivities([]); // Kosongkan state visual
+  };
 
   // Handle klik di luar dropdown untuk menutup
   useEffect(() => {
@@ -156,8 +178,8 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, user }) =>
                 {link.name}
               </button>
             ))}
-            <button onClick={() => handleNavClick('cinema')} className={`px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${currentPage === 'cinema' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>Cinema</button>
-            <button onClick={() => handleNavClick('generator')} className={`px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${currentPage === 'generator' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>Gen</button>
+            <button onClick={() => handleNavClick('cinema')} className={`px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${currentPage === 'cinema' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>Nobar</button>
+            <button onClick={() => handleNavClick('generator')} className={`px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${currentPage === 'generator' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>Gacha</button>
           </div>
 
           <div className="w-[1px] h-6 bg-slate-200 mx-1 hidden lg:block"></div>
@@ -174,6 +196,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, user }) =>
                    title="Admin Activity Log"
                 >
                    <Bell size={18} />
+                   {/* Hanya tampilkan dot merah jika ada aktivitas (logika sederhana) */}
                    <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full border border-white animate-pulse"></span>
                 </button>
 
@@ -182,12 +205,22 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, user }) =>
                   <div className="absolute top-full right-0 mt-3 w-80 sm:w-96 bg-white/90 backdrop-blur-xl rounded-[2rem] shadow-2xl border border-white/50 overflow-hidden animate-in fade-in zoom-in-95 duration-200 origin-top-right">
                     <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
                       <div>
-                        <h4 className="font-artist text-lg font-bold text-slate-900">Activity Log</h4>
-                        <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Realtime User Monitor</p>
+                        <h4 className="font-artist text-lg font-bold text-slate-900">Log Aktivitas</h4>
+                        <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Realtime Monitor</p>
                       </div>
-                      <div className="flex items-center gap-1 bg-emerald-100 text-emerald-600 px-2 py-1 rounded-full">
-                         <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
-                         <span className="text-[9px] font-bold">LIVE</span>
+                      
+                      <div className="flex items-center gap-2">
+                          <button 
+                            onClick={handleClearLogs}
+                            className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
+                            title="Bersihkan Log"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                          <div className="flex items-center gap-1 bg-emerald-100 text-emerald-600 px-2 py-1 rounded-full">
+                            <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
+                            <span className="text-[9px] font-bold">LIVE</span>
+                          </div>
                       </div>
                     </div>
                     
@@ -245,8 +278,11 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, user }) =>
                           </div>
                         ))
                       ) : (
-                        <div className="py-8 text-center text-slate-400 text-xs font-medium">
-                          Tidak ada aktivitas baru
+                        <div className="py-12 text-center">
+                          <CheckCircle2 size={32} className="mx-auto text-slate-200 mb-2" />
+                          <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest">
+                            Log Bersih
+                          </p>
                         </div>
                       )}
                     </div>
@@ -296,8 +332,8 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, user }) =>
                 </button>
               ))}
               <div className="w-10 h-1 bg-slate-200 rounded-full my-4"></div>
-              <button onClick={() => handleNavClick('cinema')} className="text-lg font-bold text-slate-500 uppercase tracking-widest">Cinema</button>
-              <button onClick={() => handleNavClick('generator')} className="text-lg font-bold text-slate-500 uppercase tracking-widest">Generator</button>
+              <button onClick={() => handleNavClick('cinema')} className="text-lg font-bold text-slate-500 uppercase tracking-widest">Nobar</button>
+              <button onClick={() => handleNavClick('generator')} className="text-lg font-bold text-slate-500 uppercase tracking-widest">Gacha</button>
               <button onClick={handleLogout} className="mt-8 px-8 py-3 bg-red-50 text-red-500 rounded-full text-xs font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all flex items-center gap-2">
                  <LogOut size={14} /> Keluar
               </button>
