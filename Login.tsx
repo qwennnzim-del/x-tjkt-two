@@ -8,8 +8,8 @@ interface LoginProps {
   onLogin: (userData: { name: string; classMajor: string; isAdmin: boolean; photo?: string }) => void;
 }
 
-// URL LOGO SEKOLAH (Mengarah ke file di folder public)
-const schoolLogoUrl = "/logo-sekolah.png"; 
+// URL LOGO SEKOLAH (Mengarah ke folder khusus)
+const schoolLogoUrl = "/logoSekolah/logo-sekolah.png"; 
 
 // DAFTAR SEKOLAH CIANJUR
 const CIANJUR_SCHOOLS = [
