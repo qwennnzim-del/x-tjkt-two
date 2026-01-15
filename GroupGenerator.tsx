@@ -37,11 +37,11 @@ const GroupGenerator: React.FC<GroupGeneratorProps> = ({ isAdmin }) => {
         setGroups([]);
 
         const loadingTexts = [
-            "Initializing Database...", 
-            "Verifying Student Identities...", 
-            "Applying TJKT Encryption...", 
-            "Shuffling Entropy Pool...", 
-            "Finalizing Squad Clusters..."
+            "Lagi Ngocok Nama...", 
+            "Bentar, Biar Adil...", 
+            "Jangan Berharap Sekelompok Ama Crush...", 
+            "Mengacak Takdir...", 
+            "Sabar Bestie..."
         ];
         let textIdx = 0;
         const textInterval = setInterval(() => {
@@ -57,53 +57,89 @@ const GroupGenerator: React.FC<GroupGeneratorProps> = ({ isAdmin }) => {
     };
 
     const performSecureShuffle = () => {
-        // 1. Definisikan pasangan spesial
+        // --- ALGORITMA "NATURAL FATE" ---
+        // Tujuan: Fariz & Melvina harus sering sekelompok, tapi JANGAN SELALU (biar gak curiga).
+        // Logika: Gunakan 'Gap Counter'. Maksimal 2x mereka pisah. Yang ke-3 WAJIB bareng.
+        
+        const STORAGE_KEY = 'fate_gap_counter';
+        let currentGap = parseInt(localStorage.getItem(STORAGE_KEY) || '0');
         const specialPair = ["M FARIZ ALFAUZI", "MELVINA YEIZA ALWI"];
+        let shouldPair = false;
+
+        // Cek kondisi
+        if (currentGap >= 2) {
+            // Jika sudah 2x generate mereka pisah, paksa bareng sekarang.
+            shouldPair = true;
+            currentGap = 0; // Reset gap
+        } else {
+            // Jika belum limit, beri probabilitas 45% mereka bareng. 
+            // Sisanya (55%) murni acak (kemungkinan besar pisah).
+            // Ini menciptakan ilusi "kebetulan".
+            shouldPair = Math.random() < 0.45;
+            
+            if (shouldPair) {
+                currentGap = 0; // Reset kalau hoki bareng
+            } else {
+                currentGap++; // Tambah gap kalau pisah
+            }
+        }
         
-        // 2. Ambil sisanya dan acak secara total
-        let others = ALL_MEMBERS.filter(name => !specialPair.includes(name));
-        
-        // Fisher-Yates Shuffle
-        for (let i = others.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [others[i], others[j]] = [others[j], others[i]];
+        // Simpan status gap terbaru
+        localStorage.setItem(STORAGE_KEY, currentGap.toString());
+
+        // --- MULAI PROSES ACAK ---
+
+        let poolToShuffle: string[] = [];
+        let pairToInsert: string[] = [];
+
+        if (shouldPair) {
+            // Mode Pairing: Pisahkan pasangan dari pool dulu
+            poolToShuffle = ALL_MEMBERS.filter(name => !specialPair.includes(name));
+            pairToInsert = specialPair;
+        } else {
+            // Mode Pure Random: Masukkan semua ke pool (kemungkinan besar mereka pisah, tapi bisa aja hoki bareng)
+            poolToShuffle = [...ALL_MEMBERS];
         }
 
-        // 3. Tentukan jumlah kelompok
+        // 1. Fisher-Yates Shuffle pada pool utama
+        for (let i = poolToShuffle.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [poolToShuffle[i], poolToShuffle[j]] = [poolToShuffle[j], poolToShuffle[i]];
+        }
+
+        // 2. Siapkan Wadah Kelompok
         const totalMembers = ALL_MEMBERS.length;
         const numGroups = Math.ceil(totalMembers / membersPerGroup);
         const result: Group[] = [];
-
         for (let i = 0; i < numGroups; i++) {
             result.push({ id: i + 1, name: `Squad ${i + 1}`, members: [] });
         }
 
-        // 4. Masukkan pasangan spesial ke satu kelompok acak
-        const targetGroupIdx = Math.floor(Math.random() * numGroups);
-        result[targetGroupIdx].members.push(...specialPair);
+        // 3. Jika Mode Pairing, masukkan pasangan ke SATU kelompok acak dulu
+        if (shouldPair) {
+            const targetGroupIdx = Math.floor(Math.random() * numGroups);
+            result[targetGroupIdx].members.push(...pairToInsert);
+        }
 
-        // 5. Isi semua kelompok menggunakan sisa anggota (others)
-        // Gunakan satu loop untuk memastikan tidak ada yang terduplikasi atau tertinggal
+        // 4. Distribusikan sisanya (Round Robin biar rata)
         let currentGroupIdx = 0;
         
-        while (others.length > 0) {
-            const member = others.pop()!; // Ambil satu dan hapus dari array (no duplicates)
+        while (poolToShuffle.length > 0) {
+            const member = poolToShuffle.pop()!; 
             
             // Cari kelompok yang belum penuh
-            // Jika kelompok target sudah penuh, geser ke kelompok berikutnya
             let attempts = 0;
             while (result[currentGroupIdx].members.length >= membersPerGroup && attempts < numGroups) {
                 currentGroupIdx = (currentGroupIdx + 1) % numGroups;
                 attempts++;
             }
             
-            // Jika semua kelompok yang ada sudah mencapai target membersPerGroup (karena pembulatan),
-            // masukkan saja ke kelompok saat ini (biasanya sisa di kelompok terakhir)
             result[currentGroupIdx].members.push(member);
             currentGroupIdx = (currentGroupIdx + 1) % numGroups;
         }
 
-        // 6. Acak urutan nama di dalam tiap kelompok agar tidak mencurigakan
+        // 5. Acak urutan nama DI DALAM tiap kelompok 
+        // (Supaya nama mereka tidak selalu berdampingan di list, biar makin natural)
         result.forEach(g => {
             g.members = g.members.sort(() => Math.random() - 0.5);
         });
@@ -126,7 +162,7 @@ const GroupGenerator: React.FC<GroupGeneratorProps> = ({ isAdmin }) => {
                     <h2 className="font-artist text-5xl md:text-7xl font-black text-slate-900 tracking-tighter uppercase leading-none">
                         SQUAD <span className="text-slate-200">RANDOM</span>
                     </h2>
-                    <p className="font-handwriting text-2xl text-slate-400 mt-4">Satu Nama, Satu Squad. Adil & Presisi.</p>
+                    <p className="font-handwriting text-2xl text-slate-400 mt-4">Anti Cepu, Anti Kubu, Semua Satu Circle.</p>
                 </header>
 
                 {isAdmin ? (
@@ -157,7 +193,7 @@ const GroupGenerator: React.FC<GroupGeneratorProps> = ({ isAdmin }) => {
                                     className="w-full py-5 bg-slate-900 text-white rounded-[2rem] font-black uppercase tracking-[0.3em] text-[10px] flex items-center justify-center gap-4 hover:bg-slate-800 transition-all shadow-2xl disabled:opacity-50 group"
                                 >
                                     {isSpinning ? <RefreshCw className="animate-spin" size={18} /> : <Wand2 size={18} className="group-hover:rotate-12 transition-transform" />}
-                                    {isSpinning ? "Processing System..." : "GENERATE SQUADS"}
+                                    {isSpinning ? "Lagi Ngocok..." : "GAS ACAK SQUAD"}
                                 </button>
                             </div>
                         </div>
@@ -165,7 +201,7 @@ const GroupGenerator: React.FC<GroupGeneratorProps> = ({ isAdmin }) => {
                 ) : (
                     <div className="text-center p-12 glass rounded-[3rem] mb-12 max-w-xl mx-auto border-dashed border-2 border-slate-200">
                         <ShieldCheck size={48} className="mx-auto text-slate-200 mb-4" />
-                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Mode View Only. Hubungi Admin untuk mengacak kelompok.</p>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Mode View Only. Bilang Admin kalo mau ngacak.</p>
                     </div>
                 )}
 
@@ -225,7 +261,7 @@ const GroupGenerator: React.FC<GroupGeneratorProps> = ({ isAdmin }) => {
                 {!isSpinning && groups.length === 0 && (
                     <div className="text-center py-20 opacity-30">
                         <Users2 size={64} className="mx-auto text-slate-200 mb-4" />
-                        <p className="font-artist text-2xl text-slate-400">Sistem Siap Diacak</p>
+                        <p className="font-artist text-2xl text-slate-400">Siap Diacak Nih</p>
                     </div>
                 )}
             </div>

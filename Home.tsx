@@ -25,18 +25,18 @@ interface HomeProps {
 const Home: React.FC<HomeProps> = ({ onExplore, user }) => {
   const skills = [
     {
-      title: "Engineering",
-      desc: "Network & Infrastructure",
+      title: "Jago Kabel",
+      desc: "Tukang Crimping Handal",
       icon: <Network size={20} />,
     },
     {
-      title: "Development",
-      desc: "Web & System Apps",
+      title: "Ngoding Dikit",
+      desc: "Bikin Web & Aplikasi",
       icon: <Code size={20} />,
     },
     {
-      title: "Security",
-      desc: "Cyber Protection",
+      title: "Anti Hack",
+      desc: "Cyber Security Tipis-tipis",
       icon: <ShieldCheck size={20} />,
     }
   ];
@@ -56,13 +56,13 @@ const Home: React.FC<HomeProps> = ({ onExplore, user }) => {
         {/* RUNNING TEXT BACKGROUND (Editorial Vibe) */}
         <div className="absolute top-1/2 left-0 -translate-y-1/2 w-full opacity-[0.03] pointer-events-none select-none overflow-hidden whitespace-nowrap">
            <div className="animate-marquee inline-block">
-              <span className="text-[12rem] font-black font-artist uppercase mr-20">We Are The Future</span>
-              <span className="text-[12rem] font-black font-artist uppercase mr-20">Network Engineer</span>
+              <span className="text-[12rem] font-black font-artist uppercase mr-20">Anak TKJ Nih Boss</span>
+              <span className="text-[12rem] font-black font-artist uppercase mr-20">Senggol Dong</span>
               <span className="text-[12rem] font-black font-artist uppercase mr-20">X TJKT TWO</span>
            </div>
            <div className="animate-marquee inline-block absolute top-0 left-full">
-              <span className="text-[12rem] font-black font-artist uppercase mr-20">We Are The Future</span>
-              <span className="text-[12rem] font-black font-artist uppercase mr-20">Network Engineer</span>
+              <span className="text-[12rem] font-black font-artist uppercase mr-20">Anak TKJ Nih Boss</span>
+              <span className="text-[12rem] font-black font-artist uppercase mr-20">Senggol Dong</span>
               <span className="text-[12rem] font-black font-artist uppercase mr-20">X TJKT TWO</span>
            </div>
         </div>
@@ -94,7 +94,7 @@ const Home: React.FC<HomeProps> = ({ onExplore, user }) => {
                   )}
                 </div>
                 <div className="text-left">
-                  <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Current User</p>
+                  <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Welcome Bestie,</p>
                   <div className="flex items-center gap-1.5">
                     <span className="text-xs font-bold text-slate-900">{firstName}</span>
                     {user.isAdmin && <CheckCircle2 size={12} className="text-blue-500" />}
@@ -105,8 +105,8 @@ const Home: React.FC<HomeProps> = ({ onExplore, user }) => {
 
             {/* Hezell Watermark */}
             <div className="hidden md:block text-right animate-in fade-in slide-in-from-right duration-700 delay-100">
-               <p className="font-handwriting text-2xl text-slate-400">Est. 2026</p>
-               <p className="text-[9px] font-black uppercase tracking-[0.4em] text-slate-300">Hezell Systems</p>
+               <p className="font-handwriting text-2xl text-slate-400">Since 2026</p>
+               <p className="text-[9px] font-black uppercase tracking-[0.4em] text-slate-300">Hezell Creative</p>
             </div>
           </div>
 
@@ -114,13 +114,13 @@ const Home: React.FC<HomeProps> = ({ onExplore, user }) => {
           <div className="relative mb-16">
             <h1 className="font-artist text-[5rem] sm:text-[7rem] md:text-[9rem] leading-[0.85] font-black text-slate-900 tracking-tighter mix-blend-darken animate-in fade-in slide-in-from-bottom duration-1000">
               <span className="block">DIGITAL</span>
-              <span className="block italic font-light text-slate-400 pl-4 sm:pl-12">ARCHITECTS</span>
-              <span className="block text-right pr-4 sm:pr-0 text-transparent bg-clip-text bg-gradient-to-r from-slate-900 to-slate-600">OF TJKT 2</span>
+              <span className="block italic font-light text-slate-400 pl-4 sm:pl-12">BASECAMP</span>
+              <span className="block text-right pr-4 sm:pr-0 text-transparent bg-clip-text bg-gradient-to-r from-slate-900 to-slate-600">ANAK TJKT 2</span>
             </h1>
             
             <div className="absolute top-0 right-0 md:top-1/2 md:-right-8 w-24 h-24 md:w-32 md:h-32 bg-slate-900 rounded-full flex items-center justify-center text-white animate-spin-slow hidden sm:flex">
                <div className="text-[10px] font-black uppercase tracking-widest text-center leading-relaxed">
-                  Class<br/>Of<br/>2026
+                  Calon<br/>Sukses<br/>2026
                </div>
             </div>
           </div>
@@ -128,12 +128,12 @@ const Home: React.FC<HomeProps> = ({ onExplore, user }) => {
           <div className="grid md:grid-cols-3 gap-12 items-end">
              <div className="md:col-span-1 animate-in fade-in slide-in-from-bottom duration-1000 delay-300">
                 <p className="text-xs md:text-sm font-medium text-slate-500 leading-relaxed mb-6 text-justify">
-                   Sebuah ruang digital untuk <span className="text-slate-900 font-bold">X TJKT TWO</span>. 
-                   Menggabungkan teknologi jaringan, kreativitas, dan solidaritas dalam satu platform terintegrasi.
+                   Ini markas digital anak <span className="text-slate-900 font-bold">X TJKT TWO</span>. 
+                   Tempat kita ngoding, ngeluh tugas, curhat colongan, dan seru-seruan bareng satu kelas. No Drama, Just Vibes.
                 </p>
                 <div className="flex items-center gap-4">
                    <button onClick={() => onExplore('about')} className="h-12 px-8 bg-slate-900 text-white rounded-full flex items-center gap-2 text-[10px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all shadow-xl group">
-                      Explore Vibes <ArrowDownRight size={16} className="group-hover:-rotate-45 transition-transform duration-300" />
+                      Cek Vibes Kita <ArrowDownRight size={16} className="group-hover:-rotate-45 transition-transform duration-300" />
                    </button>
                 </div>
              </div>
@@ -157,4 +157,3 @@ const Home: React.FC<HomeProps> = ({ onExplore, user }) => {
 };
 
 export default Home;
-    

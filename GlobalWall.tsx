@@ -86,7 +86,7 @@ const GlobalWall: React.FC<GlobalWallProps> = ({ user }) => {
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 2 * 1024 * 1024) { // Limit 2MB for base64 performance
-        alert("Ukuran foto terlalu besar! Maksimal 2MB.");
+        alert("Waduh, fotonya kegedean! Maksimal 2MB ya.");
         return;
       }
       const reader = new FileReader();
@@ -205,9 +205,9 @@ const GlobalWall: React.FC<GlobalWallProps> = ({ user }) => {
             <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">The Wall of Thoughts</span>
           </div>
           <h2 className="font-artist text-5xl md:text-7xl font-black text-slate-900 tracking-tighter uppercase leading-none">
-            SUARA <span className="text-slate-200">KITA</span>
+            TEMBOK <span className="text-slate-200">JULID</span>
           </h2>
-          <p className="font-handwriting text-2xl text-slate-400 mt-4">Terbuka, Santai, dan Penuh Warna.</p>
+          <p className="font-handwriting text-2xl text-slate-400 mt-4">Spill aja di sini, aman kok.</p>
         </header>
 
         {/* Input Area */}
@@ -235,7 +235,7 @@ const GlobalWall: React.FC<GlobalWallProps> = ({ user }) => {
                 <textarea 
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
-                  placeholder="Tulis sesuatu atau bagikan foto..."
+                  placeholder="Tumpahin uneg-uneg lo atau drop meme lucu di sini..."
                   className="w-full pl-12 pr-4 py-4 bg-white/50 border border-slate-100 rounded-3xl outline-none focus:ring-2 focus:ring-slate-900/10 font-handwriting text-2xl text-slate-700 placeholder:text-slate-300 min-h-[100px] resize-none"
                   maxLength={500}
                 />
@@ -281,7 +281,7 @@ const GlobalWall: React.FC<GlobalWallProps> = ({ user }) => {
                   className="w-full sm:w-auto px-8 py-3 bg-slate-900 text-white rounded-full flex items-center justify-center gap-2 shadow-lg hover:bg-slate-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed group-submit text-[10px] font-black uppercase tracking-widest"
                 >
                   {isSending ? <Loader2 className="animate-spin" size={14} /> : <Send size={14} />}
-                  <span>Posting</span>
+                  <span>Gas Kirim</span>
                 </button>
               </div>
             </div>
@@ -329,7 +329,7 @@ const GlobalWall: React.FC<GlobalWallProps> = ({ user }) => {
                         {note.isAdmin && <CheckCircle2 size={12} className="text-blue-600 fill-blue-100" />}
                       </div>
                       <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest leading-none block mt-1">
-                        {note.createdAt?.seconds ? new Date(note.createdAt.seconds * 1000).toLocaleDateString('id-ID', { hour: '2-digit', minute: '2-digit' }) : 'Just now'}
+                        {note.createdAt?.seconds ? new Date(note.createdAt.seconds * 1000).toLocaleDateString('id-ID', { hour: '2-digit', minute: '2-digit' }) : 'Barusan'}
                       </span>
                     </div>
                   </div>
@@ -451,7 +451,7 @@ const GlobalWall: React.FC<GlobalWallProps> = ({ user }) => {
                               type="text"
                               value={replyText}
                               onChange={(e) => setReplyText(e.target.value)}
-                              placeholder={user.isAdmin && customReplyName ? `Balas sebagai "${customReplyName}"...` : "Balas..."}
+                              placeholder={user.isAdmin && customReplyName ? `Balas sebagai "${customReplyName}"...` : "Tulis balasan..."}
                               className="w-full pl-4 pr-10 py-2.5 bg-white/60 rounded-xl text-xs border border-transparent focus:border-slate-300 focus:bg-white outline-none transition-all placeholder:text-slate-400 text-slate-900"
                               autoFocus
                               onKeyDown={(e) => e.key === 'Enter' && handleReplySubmit(note.id)}
@@ -480,7 +480,7 @@ const GlobalWall: React.FC<GlobalWallProps> = ({ user }) => {
            <div className="text-center py-20 opacity-50">
              <MessageSquare size={48} className="mx-auto text-slate-300 mb-4" />
              <p className="font-artist text-xl text-slate-400">Tembok masih bersih...</p>
-             <p className="text-[10px] font-bold uppercase tracking-widest text-slate-300">Jadilah yang pertama menulis!</p>
+             <p className="text-[10px] font-bold uppercase tracking-widest text-slate-300">Gas jadilah yang pertama nulis!</p>
            </div>
         )}
       </div>

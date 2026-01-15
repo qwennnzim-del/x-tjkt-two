@@ -34,25 +34,25 @@ const FeatureTour: React.FC<FeatureTourProps> = ({ onComplete }) => {
   const steps = [
     {
       title: "Hzell Virtual",
-      desc: "Asisten AI pintar khusus kelas kita. Tanya tugas, jadwal, atau curhat soal jaringan? Dia siap bantu 24/7.",
+      desc: "Bestie AI yang siap bantu tugas lo 24/7. Mau curhat soal jaringan atau sekadar gabut? Gas chat aja!",
       icon: <Bot size={48} className="text-white" />,
       color: "bg-gradient-to-tr from-blue-500 to-purple-600"
     },
     {
       title: "The Wall",
-      desc: "Tembok ekspresi bebas! Kirim pesan anonim, salam-salaman, atau sekadar berbagi meme lucu.",
+      desc: "Tembok Julid & Curhat. Spill teh hangat di sini, anonim dan aman. Bebas berekspresi asal sopan.",
       icon: <StickyNote size={48} className="text-white" />,
       color: "bg-gradient-to-tr from-pink-500 to-rose-500"
     },
     {
       title: "Squad Generator",
-      desc: "Fitur baru! Bagi kelompok tugas jadi lebih adil dan seru dengan sistem Spinner otomatis.",
+      desc: "Anti Rungkad Club. Bagi kelompok tugas jadi lebih adil dan seru tanpa drama 'ih kok sama dia'.",
       icon: <Users2 size={48} className="text-white" />,
       color: "bg-gradient-to-tr from-emerald-500 to-teal-500"
     },
     {
       title: "Cinema TJKT",
-      desc: "Bioskop mini kelas. Streaming koleksi film dokumentasi hingga film baper.",
+      desc: "Nobar Santuy. Nonton film bareng atau dokumentasi aib kelas di sini. Siapin popcorn!",
       icon: <Film size={48} className="text-white" />,
       color: "bg-gradient-to-tr from-red-500 to-orange-500"
     }
@@ -86,7 +86,7 @@ const FeatureTour: React.FC<FeatureTourProps> = ({ onComplete }) => {
             ))}
           </div>
           <button onClick={handleNext} className="w-full py-4 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-slate-800 transition-all shadow-xl group">
-            {step === steps.length - 1 ? "Mulai Jelajahi" : "Lanjut"} 
+            {step === steps.length - 1 ? "Gas Jelajahi" : "Lanjut"} 
             <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
           </button>
         </div>
@@ -215,4 +215,3 @@ const App = () => {
 
 const root = createRoot(document.getElementById('root')!);
 root.render(<App />);
-    

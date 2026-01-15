@@ -16,9 +16,9 @@ const Footer = () => {
       <div className="container mx-auto px-6">
         <div className="grid md:grid-cols-3 gap-16 mb-20">
           <div className="col-span-1 md:col-span-2">
-            <h2 className="font-artist text-5xl md:text-7xl font-bold mb-8">Stay humble, stay solid.</h2>
+            <h2 className="font-artist text-5xl md:text-7xl font-bold mb-8">Tetap Ilmu Padi, Abangku.</h2>
             <p className="text-slate-400 max-w-lg mb-12 font-light tracking-wide text-lg">
-              Ada pertanyaan atau mau ngajak kolaborasi? Main aja ke Laboratorium Komputer atau hubungi kita di sosmed. Kita selalu terbuka buat teman-teman baru.
+              Mau nanya-nanya atau ngajak collab? Gas langsung ke Lab Komputer atau DM kita. Santai aja, kita asik kok, gak gigit.
             </p>
             <div className="flex flex-wrap items-center gap-6">
               <a 
@@ -56,7 +56,7 @@ const Footer = () => {
                 className="h-14 px-8 rounded-full border border-slate-700 flex items-center justify-center gap-3 hover:bg-emerald-500 hover:border-emerald-500 hover:text-white transition-all duration-500 group shadow-lg"
               >
                 <MessageCircle size={18} className="group-hover:rotate-12 transition-transform" />
-                <span className="text-[10px] font-black uppercase tracking-[0.2em]">Hubungi Admin</span>
+                <span className="text-[10px] font-black uppercase tracking-[0.2em]">Chat Mimin</span>
               </a>
             </div>
           </div>

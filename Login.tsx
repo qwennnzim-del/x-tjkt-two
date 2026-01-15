@@ -196,7 +196,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
       {/* Login Card */}
       <div className="w-full max-w-md glass rounded-[3rem] p-8 md:p-10 shadow-2xl relative animate-in fade-in zoom-in duration-700 max-h-[90vh] overflow-y-auto no-scrollbar z-10">
         <div className="text-center mb-6">
-          <span className="font-handwriting text-3xl text-slate-400 block mb-1">Setup Your Profile</span>
+          <span className="font-handwriting text-3xl text-slate-400 block mb-1">Kenalan Dulu Dong</span>
           <h1 className="font-artist text-3xl font-bold text-slate-900 tracking-tight">X TJKT TWO</h1>
         </div>
 
@@ -232,7 +232,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
             <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-slate-900 transition-colors" size={20} />
             <input 
               type="text" 
-              placeholder="Nama Lengkap" 
+              placeholder="Nama Lengkap Lo" 
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="w-full pl-12 pr-4 py-4 bg-white/60 border border-slate-200/50 rounded-2xl outline-none focus:ring-2 focus:ring-slate-900/10 focus:bg-white transition-all font-medium text-slate-900 placeholder:text-slate-400"
@@ -248,7 +248,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
               <div className="flex items-center gap-2 overflow-hidden">
                 <School className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-slate-900 transition-colors" size={20} />
                 <span className={`font-medium truncate ${classMajor ? 'text-slate-900' : 'text-slate-400'}`}>
-                  {classMajor || "Pilih Asal Sekolah"}
+                  {classMajor || "Sekolah Mana Ni?"}
                 </span>
               </div>
               <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">
@@ -302,14 +302,14 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
             className={`text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 transition-colors ${showAdminField ? 'text-slate-900' : 'text-slate-400 hover:text-slate-600'}`}
           >
             <ShieldCheck size={12} />
-            {showAdminField ? 'Batal Admin' : 'Masuk Sebagai Admin'}
+            {showAdminField ? 'Gajadi Admin' : 'Login Admin'}
           </button>
         </div>
 
         {/* Custom Slider Confirmation */}
         <div className="mt-8">
           <p className="text-center text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-4">
-            {!isFormValid ? 'Lengkapi Nama & Sekolah' : slideComplete ? (isProcessing ? 'Verifying...' : 'Access Granted!') : 'Geser untuk Gabung'}
+            {!isFormValid ? 'Isi Nama Dulu Dong' : slideComplete ? (isProcessing ? 'Bentar Yaa...' : 'Gas Masuk!') : 'Geser Buat Masuk'}
           </p>
           
           <div 
@@ -343,8 +343,8 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
             </button>
             
             <div className="text-center mb-8">
-              <h3 className="font-artist text-3xl font-bold text-slate-900">Pilih Karakter</h3>
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mt-2">Sketch Style Aesthetic</p>
+              <h3 className="font-artist text-3xl font-bold text-slate-900">Pilih Avatar</h3>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mt-2">Biar Makin Kece</p>
             </div>
 
             <div className="grid grid-cols-3 gap-4 max-h-[50vh] overflow-y-auto no-scrollbar p-2">
@@ -387,10 +387,10 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
           </div>
           <div>
             <p className="font-bold text-sm">
-              {adminCode === SECRET_ADMIN_CODE ? 'Welcome, Admin!' : `Halo, ${name.split(' ')[0]}!`}
+              {adminCode === SECRET_ADMIN_CODE ? 'Welcome, Mimin!' : `Halo, ${name.split(' ')[0]}!`}
             </p>
             <p className="text-[10px] text-slate-400 uppercase tracking-wider">
-              Profile Setup Complete
+              Profile Ready. Gas!
             </p>
           </div>
         </div>
