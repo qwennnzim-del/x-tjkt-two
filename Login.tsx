@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { User, School, ArrowRight, CheckCircle2, ShieldCheck, Lock, Sparkles, X, Grid, Loader2, ChevronDown, ChevronUp, Check } from 'lucide-react';
+import { User, School, ArrowRight, CheckCircle2, ShieldCheck, Lock, Sparkles, X, Grid, Loader2, ChevronDown, ChevronUp, Check, HelpCircle } from 'lucide-react';
 import { db } from './firebase';
 import { collection, serverTimestamp, setDoc, doc } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
@@ -48,8 +48,7 @@ const AVATARS = [
 const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const [name, setName] = useState('');
   const [classMajor, setClassMajor] = useState(''); // Menyimpan Nama Sekolah
-  const [adminCode, setAdminCode] = useState('');
-  const [showAdminField, setShowAdminField] = useState(false);
+  const [adminAnswer, setAdminAnswer] = useState('');
   const [slideComplete, setSlideComplete] = useState(false);
   const [showNotification, setShowNotification] = useState(false);
   const [photo, setPhoto] = useState<string | null>(null);
@@ -62,8 +61,6 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const sliderRef = useRef<HTMLDivElement>(null);
   const handleRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
-
-  const SECRET_ADMIN_CODE = "TKJOUTH-X26";
 
   // Handle click outside untuk menutup dropdown
   useEffect(() => {
@@ -143,10 +140,9 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     setIsProcessing(true);
     let isAdmin = false;
 
-    if (showAdminField && adminCode.length > 0) {
-      if (adminCode === SECRET_ADMIN_CODE) {
-        isAdmin = true;
-      }
+    // Cek jawaban admin
+    if (adminAnswer.trim().toLowerCase() === "ibu resita") {
+      isAdmin = true;
     }
     
     const deviceInfo = getDeviceDetails();
@@ -288,28 +284,18 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
             )}
           </div>
 
-          {showAdminField && (
-            <div className="relative group animate-in slide-in-from-top-2 duration-300">
-              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-slate-900 transition-colors" size={20} />
-              <input 
-                type="password" 
-                placeholder="Kode Rahasia Admin" 
-                value={adminCode}
-                onChange={(e) => setAdminCode(e.target.value)}
-                className="w-full pl-12 pr-4 py-4 bg-white/60 border border-slate-200/50 rounded-2xl outline-none focus:ring-2 focus:ring-slate-900/10 focus:bg-white transition-all font-medium text-slate-900 placeholder:text-slate-400"
-              />
-            </div>
-          )}
-        </div>
-
-        <div className="mt-4 flex justify-end">
-          <button 
-            onClick={() => setShowAdminField(!showAdminField)}
-            className={`text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 transition-colors ${showAdminField ? 'text-slate-900' : 'text-slate-400 hover:text-slate-600'}`}
-          >
-            <ShieldCheck size={12} />
-            {showAdminField ? 'Gajadi Admin' : 'Login Admin'}
-          </button>
+          {/* INPUT PERTANYAAN ADMIN (LANGSUNG TAMPIL) */}
+          <div className="relative group animate-in slide-in-from-top-2 duration-300">
+            <HelpCircle className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-slate-900 transition-colors" size={20} />
+            <input 
+              type="text" 
+              placeholder="Siapa Wali Kelas X TJKT 2?" 
+              value={adminAnswer}
+              onChange={(e) => setAdminAnswer(e.target.value)}
+              className="w-full pl-12 pr-4 py-4 bg-white/60 border border-slate-200/50 rounded-2xl outline-none focus:ring-2 focus:ring-slate-900/10 focus:bg-white transition-all font-medium text-slate-900 placeholder:text-slate-400"
+            />
+            <p className="text-[9px] text-slate-400 mt-2 px-2 italic text-right">*Isi jika lo admin, kalo bukan skip aja.</p>
+          </div>
         </div>
 
         {/* Custom Slider Confirmation */}
@@ -394,7 +380,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
           </div>
           <div>
             <p className="font-bold text-sm">
-              {adminCode === SECRET_ADMIN_CODE ? 'Welcome, Mimin!' : `Halo, ${name.split(' ')[0]}!`}
+              {adminAnswer.trim().toLowerCase() === "ibu resita" ? 'Welcome, Mimin!' : `Halo, ${name.split(' ')[0]}!`}
             </p>
             <p className="text-[10px] text-slate-400 uppercase tracking-wider">
               Profile Ready. Gas!
