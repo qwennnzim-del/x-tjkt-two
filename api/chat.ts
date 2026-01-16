@@ -93,8 +93,9 @@ export default async function handler(req, res) {
     });
 
     // Loop stream dan kirim potongan teks ke klien
-    for await (const chunk of result.stream) {
-      const chunkText = chunk.text();
+    // Perbaikan: result adalah iterable itu sendiri, dan gunakan .text property (bukan method)
+    for await (const chunk of result) {
+      const chunkText = chunk.text;
       if (chunkText) {
         res.write(chunkText);
       }
