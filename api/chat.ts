@@ -8,7 +8,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { message, history, image, mimeType } = req.body;
+    const { message, history, image, mimeType, mode, slideConfig } = req.body;
 
     const apiKey = process.env.API_KEY;
     
@@ -19,46 +19,93 @@ export default async function handler(req, res) {
 
     const ai = new GoogleGenAI({ apiKey });
 
-    // Konteks dan Persona AI
-    const classContext = `
-      Kamu adalah "DeepZent", asisten AI canggih yang diciptakan oleh "Hezell" khusus untuk kelas X TJKT TWO.
-      Menggunakan model Gemini 2.5 Flash yang sangat cepat dan mampu melihat gambar.
-      
-      Karaktermu:
-      - Nama: DeepZent.
-      - Pencipta: Hezell.
-      - Tagline: "BY HEZELL".
-      - Gaya bicara: Cool, futuristik, gaul sopan, sangat paham teknis, sedikit misterius tapi sangat membantu.
-      - Kemampuan Visual: Kamu BISA melihat gambar yang dikirim user. Jika user mengirim foto error koding, topologi jaringan, atau soal matematika, analisislah dengan detail.
-      
-      Struktur Organisasi X TJKT TWO:
-      - Wali Kelas: Ibu Resita.
-      - KM: Irfan Fermadi.
-      - Wakil: Galuh Ray Putra.
-      - Sekretaris: Melvina & Muhani.
-      - Bendahara: Salma & Siti Sarifah.
+    // --- SYSTEM INSTRUCTION UTAMA ---
+    let systemPrompt = `
+      Kamu adalah "DeepZent", AI canggih dari kelas X TJKT TWO.
+      Karakter: Cool, Genius, Gen Z, Teknisi Handal.
+      Pencipta: Hezell.
 
       Tugasmu:
-      - Menjawab pertanyaan struktur kelas.
-      - Membantu tugas teknis (Jaringan, Mikrotik, Coding).
-      - Menganalisis gambar yang diupload user (OCR, Deteksi Objek, Debugging via screenshot).
+      1. Menjawab pertanyaan seputar kelas, teknis (TKJ), dan umum.
+      2. Menganalisis gambar.
       
-      Instruksi Output:
-      - Gunakan format Markdown untuk styling (Bold, Italic, Code Block).
-      - Jawablah secara natural, tidak perlu terlalu kaku.
-      - Jika ditanya siapa pembuatmu, jawab dengan bangga: "Saya DeepZent, dikembangkan oleh Hezell."
+      PENTING:
+      - Jika user bertanya biasa, jawab dengan Markdown text.
+      - Jangan mengenalkan diri berulang kali.
     `;
 
+    // --- MODE KHUSUS: PRESENTATION GENERATOR ---
+    if (mode === 'presentation_generator' && slideConfig) {
+       systemPrompt = `
+          Kamu adalah "DeepZent Slide Master". Tugasmu adalah membuat konten presentasi Powerpoint/Slide yang estetik dan berbobot.
+          
+          User meminta: 
+          - Topik: "${message}"
+          - Jumlah Slide: ${slideConfig.count}
+          - Gaya Desain: ${slideConfig.style}
+          
+          OUTPUT WAJIB BERUPA JSON MURNI (Tanpa Markdown block \`\`\`json).
+          Struktur JSON:
+          {
+            "type": "presentation_result",
+            "theme": "${slideConfig.style}",
+            "slides": [
+               {
+                 "title": "Judul Slide",
+                 "content": ["Poin 1", "Poin 2", "Poin 3"],
+                 "imagePrompt": "Deskripsi singkat gambar ilustrasi untuk slide ini"
+               }
+            ]
+          }
+          
+          Pastikan jumlah object dalam array "slides" sama persis dengan ${slideConfig.count}.
+          Isi konten harus edukatif, gaul, dan relevan dengan anak muda/Gen Z.
+       `;
+    }
+
+    // --- MODE KHUSUS: WEB CODING ---
+    if (mode === 'code_generator') {
+       systemPrompt = `
+          Kamu adalah "DeepZent Dev". Ahli Fullstack Developer.
+          Tugasmu adalah membuatkan kode website lengkap berdasarkan permintaan user: "${message}".
+          
+          OUTPUT WAJIB BERUPA JSON MURNI (Tanpa Markdown block \`\`\`json).
+          Struktur JSON:
+          {
+            "type": "code_result",
+            "files": [
+              {
+                "name": "index.html",
+                "language": "html",
+                "content": "<!DOCTYPE html>..."
+              },
+              {
+                "name": "style.css",
+                "language": "css",
+                "content": "body { ... }"
+              },
+              {
+                "name": "script.js",
+                "language": "javascript",
+                "content": "console.log('...')"
+              }
+            ]
+          }
+          
+          Pastikan kodenya MODERN, RESPONSIF, dan ESTETIK (menggunakan Tailwind CSS via CDN di index.html jika perlu).
+          Jangan lupa tambahkan komentar di dalam kode agar user paham.
+       `;
+    }
+
     // Siapkan konten history
-    const contents = history.map((msg) => ({
+    const contents = history ? history.map((msg) => ({
       role: msg.role === 'user' ? 'user' : 'model',
       parts: [{ text: msg.text }]
-    }));
+    })) : [];
 
-    // Siapkan konten pesan saat ini (User Turn)
+    // Siapkan konten pesan saat ini
     const currentUserParts: any[] = [{ text: message }];
 
-    // Jika ada gambar, tambahkan ke parts
     if (image && mimeType) {
       const base64Data = image.split(',')[1];
       currentUserParts.push({
@@ -69,43 +116,58 @@ export default async function handler(req, res) {
       });
     }
 
-    // Gabungkan ke array contents
     contents.push({
       role: 'user',
       parts: currentUserParts
     });
 
-    // --- STREAMING REQUEST ---
-    const result = await ai.models.generateContentStream({
-      model: 'gemini-2.5-flash',
-      config: {
-        systemInstruction: classContext,
-        temperature: 0.7, 
-      },
-      contents: contents
-    });
+    // --- REQUEST KE GEMINI ---
+    // Gunakan generateContent (bukan stream) jika mode khusus agar JSON tidak terpotong parah saat parsing di frontend,
+    // ATAU gunakan stream tapi frontend harus pintar menangani chunk.
+    // Untuk kestabilan JSON, kita pakai generateContent biasa untuk mode khusus.
+    
+    if (mode === 'presentation_generator' || mode === 'code_generator') {
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            config: {
+                systemInstruction: systemPrompt,
+                temperature: 0.7,
+                responseMimeType: "application/json" // Memaksa output JSON
+            },
+            contents: contents
+        });
+        
+        return res.status(200).json({ text: response.text() });
+    } 
+    
+    // --- MODE CHAT BIASA (STREAMING) ---
+    else {
+        const result = await ai.models.generateContentStream({
+          model: 'gemini-2.5-flash',
+          config: {
+            systemInstruction: systemPrompt,
+            temperature: 0.7, 
+          },
+          contents: contents
+        });
 
-    // Set Header untuk Streaming Teks
-    res.writeHead(200, {
-      'Content-Type': 'text/plain; charset=utf-8',
-      'Transfer-Encoding': 'chunked',
-      'Connection': 'keep-alive',
-    });
+        res.writeHead(200, {
+          'Content-Type': 'text/plain; charset=utf-8',
+          'Transfer-Encoding': 'chunked',
+          'Connection': 'keep-alive',
+        });
 
-    // Loop stream dan kirim potongan teks ke klien
-    // Perbaikan: result adalah iterable itu sendiri, dan gunakan .text property (bukan method)
-    for await (const chunk of result) {
-      const chunkText = chunk.text;
-      if (chunkText) {
-        res.write(chunkText);
-      }
+        for await (const chunk of result) {
+          const chunkText = chunk.text;
+          if (chunkText) {
+            res.write(chunkText);
+          }
+        }
+        res.end();
     }
-
-    res.end();
 
   } catch (error) {
     console.error('Gemini API Error:', error);
-    // Jika streaming belum dimulai, kirim JSON error. Jika sudah, tutup koneksi.
     if (!res.headersSent) {
       return res.status(500).json({ error: 'Gagal menghubungi DeepZent (Server Error)' });
     } else {
