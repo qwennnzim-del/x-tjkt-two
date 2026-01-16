@@ -63,7 +63,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const handleRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const SECRET_ADMIN_CODE = "TJKTAUTH0808";
+  const SECRET_ADMIN_CODE = "TKJOUTH-X26";
 
   // Handle click outside untuk menutup dropdown
   useEffect(() => {

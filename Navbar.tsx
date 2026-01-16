@@ -61,8 +61,8 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, user }) =>
 
           const logs: ActivityLog[] = [];
 
-          // 1. Ambil 8 Login Terakhir
-          const loginQ = query(collection(db, "user_logins"), orderBy("timestamp", "desc"), limit(8));
+          // 1. Ambil Login Terakhir (Limit diperbesar agar user lama tetap muncul/scrollable)
+          const loginQ = query(collection(db, "user_logins"), orderBy("timestamp", "desc"), limit(100));
           const loginSnap = await getDocs(loginQ);
           loginSnap.forEach(doc => {
             const data = doc.data();
@@ -74,7 +74,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, user }) =>
                   type: 'login',
                   user: data.name,
                   school: data.classMajor || 'Unknown School',
-                  message: 'Sedang Online',
+                  message: 'Sedang Online', // Pesan default
                   time: data.timestamp,
                   photo: data.photo,
                   isAdmin: data.isAdmin // Ambil status admin
@@ -82,8 +82,8 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, user }) =>
             }
           });
 
-          // 2. Ambil 5 Postingan Wall Terakhir
-          const wallQ = query(collection(db, "global_wall"), orderBy("createdAt", "desc"), limit(5));
+          // 2. Ambil Postingan Wall Terakhir (Limit diperbesar juga)
+          const wallQ = query(collection(db, "global_wall"), orderBy("createdAt", "desc"), limit(20));
           const wallSnap = await getDocs(wallQ);
           wallSnap.forEach(doc => {
             const data = doc.data();
@@ -103,14 +103,15 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, user }) =>
             }
           });
 
-          // Gabungkan dan Sortir
+          // Gabungkan dan Sortir berdasarkan waktu terbaru
           logs.sort((a, b) => {
              const timeA = a.time?.seconds || 0;
              const timeB = b.time?.seconds || 0;
              return timeB - timeA;
           });
 
-          setActivities(logs.slice(0, 10)); 
+          // Set semua logs tanpa slicing agar bisa discroll sampai bawah
+          setActivities(logs); 
         } catch (error) {
           console.error("Error fetching notifs", error);
         } finally {
@@ -249,7 +250,15 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage, user }) =>
                                   {/* BLUE CHECK BADGE */}
                                   {log.isAdmin && <CheckCircle2 size={12} className="text-blue-500 fill-blue-50 shrink-0" />}
                                 </div>
-                                <span className="text-[9px] text-slate-400 font-mono whitespace-nowrap shrink-0">{formatTime(log.time)}</span>
+                                {/* GANTI JAM MENJADI STATUS ONLINE KHUSUS UNTUK TIPE LOGIN */}
+                                {log.type === 'login' ? (
+                                  <span className="flex items-center gap-1 text-[9px] text-emerald-500 font-bold uppercase tracking-wider whitespace-nowrap shrink-0">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                    Online
+                                  </span>
+                                ) : (
+                                  <span className="text-[9px] text-slate-400 font-mono whitespace-nowrap shrink-0">{formatTime(log.time)}</span>
+                                )}
                               </div>
                               <div className="flex items-center gap-1.5 mt-0.5">
                                 {log.type === 'login' ? <School size={10} className="text-slate-400" /> : <MessageSquare size={10} className="text-slate-400" />}
