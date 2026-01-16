@@ -121,7 +121,6 @@ const ChatAssistant = () => {
             i = (i + 1) % statuses.length;
          }, 800);
          // Stop interval nanti di finally/success
-         // (Disimpan di ref idealnya, tapi simpelnya kita biarkan berjalan sampai request selesai)
       } else if (specialMode === 'presentation_generator') {
          setProcessingStatus("Merancang Slide Deck Estetik...");
       }
@@ -145,6 +144,12 @@ const ChatAssistant = () => {
       // JIKA SPECIAL MODE (JSON RESPONSE)
       if (specialMode) {
           const data = await response.json();
+          
+          // Error handling jika response API kosong atau error
+          if (!data || !data.text) {
+             throw new Error("Respon AI kosong atau gagal.");
+          }
+
           // Parsing JSON string dari Gemini
           let parsedData;
           try {
@@ -153,7 +158,12 @@ const ChatAssistant = () => {
              parsedData = JSON.parse(rawText);
           } catch (err) {
              console.error("JSON Parse Error", err);
-             throw new Error("Gagal memproses output AI.");
+             // Fallback: Tampilkan pesan error user friendly
+             setMessages(prev => prev.map(msg => 
+               msg.id === aiMsgId ? { ...msg, text: "Maaf, terjadi kesalahan saat memproses data format (JSON Error). Coba request ulang ya!", isStreaming: false } : msg
+             ));
+             setProcessingStatus('');
+             return;
           }
 
           setProcessingStatus(''); // Clear status
@@ -190,7 +200,7 @@ const ChatAssistant = () => {
 
     } catch (error) {
       console.error("Chat Error:", error);
-      setMessages(prev => prev.map(msg => msg.id === aiMsgId ? { ...msg, text: "Error: Gagal memproses permintaan.", isStreaming: false } : msg));
+      setMessages(prev => prev.map(msg => msg.id === aiMsgId ? { ...msg, text: "Error: Gagal memproses permintaan (Server Error).", isStreaming: false } : msg));
     } finally {
       setIsLoading(false);
       setProcessingStatus('');
