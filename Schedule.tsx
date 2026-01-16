@@ -324,7 +324,7 @@ const Schedule = () => {
                             </ul>
                             <div className="pt-3 border-t border-amber-200/50">
                                 <p className="text-[9px] text-amber-600/80 italic">
-                                   💡 Bingung tugasnya? Coba tanya <span className="font-bold">Hzell Virtual</span>.
+                                   💡 Bingung tugasnya? Coba tanya <span className="font-bold">DeepZent</span>.
                                 </p>
                              </div>
                           </div>

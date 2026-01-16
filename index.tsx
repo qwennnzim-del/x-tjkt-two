@@ -74,9 +74,9 @@ const FeatureTour: React.FC<FeatureTourProps> = ({ onComplete }) => {
 
   const steps = [
     {
-      title: "Hzell Virtual",
-      desc: "Bestie AI yang siap bantu tugas lo 24/7. Mau curhat soal jaringan atau sekadar gabut? Gas chat aja!",
-      icon: <Bot size={48} className="text-white" />,
+      title: "DeepZent AI",
+      desc: "Bestie AI (by Hezell) yang siap bantu tugas lo 24/7. Mau curhat soal jaringan atau sekadar gabut? Gas chat aja!",
+      icon: <img src="https://img.icons8.com/?size=100&id=UVAma2zdWPaJ&format=png&color=000000" className="w-12 h-12 invert" alt="DeepZent" />,
       color: "bg-gradient-to-tr from-blue-500 to-purple-600"
     },
     {
