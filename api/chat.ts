@@ -122,9 +122,6 @@ export default async function handler(req, res) {
     });
 
     // --- REQUEST KE GEMINI ---
-    // Gunakan generateContent (bukan stream) jika mode khusus agar JSON tidak terpotong parah saat parsing di frontend,
-    // ATAU gunakan stream tapi frontend harus pintar menangani chunk.
-    // Untuk kestabilan JSON, kita pakai generateContent biasa untuk mode khusus.
     
     if (mode === 'presentation_generator' || mode === 'code_generator') {
         const response = await ai.models.generateContent({
@@ -137,7 +134,10 @@ export default async function handler(req, res) {
             contents: contents
         });
         
-        return res.status(200).json({ text: response.text() });
+        // FIX: Menggunakan .text (property) bukan .text() (function)
+        const textResult = response.text;
+        
+        return res.status(200).json({ text: textResult });
     } 
     
     // --- MODE CHAT BIASA (STREAMING) ---
